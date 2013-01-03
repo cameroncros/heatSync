@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <iostream>
-#include <boost/thread.hpp>
+#include <thread>
 
 class File;
 
@@ -24,13 +24,13 @@ Watcher::Watcher(Share &shr, Database &db, std::string path) {
 	this->path = path;
 	event = (inotify_event*)malloc(sizeof(struct inotify_event) + NAME_MAX + 1);
 	watchfile = inotify_init();
-	boost::thread trd(work);
+	std::thread trd(&Watcher::work, this);
 	trd.join();
 	// TODO Auto-generated constructor stub
 
 }
 
-void Watcher::work(long int asdf) {
+void Watcher::work() {
 	File *nFile;
 
 	inotify_add_watch(watchfile,path.c_str(),IN_CLOSE_WRITE|IN_ATTRIB|IN_CREATE|IN_DELETE|IN_MODIFY|IN_DELETE|IN_DELETE_SELF|IN_MOVE_SELF|IN_MOVED_FROM|IN_MOVED_TO);
@@ -46,7 +46,6 @@ void Watcher::work(long int asdf) {
 }
 
 Watcher::~Watcher() {
-	delete(trd);
 	free(event);
 	close(watchfile);
 	// TODO Auto-generated destructor stub

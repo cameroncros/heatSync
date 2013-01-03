@@ -31,7 +31,7 @@ public:
 	Watcher(Share &, Database &, std::string);
 	virtual ~Watcher();
 
-	void work(long int);
+	void work();
 };
 
 #endif /* WATCHER_H_ */

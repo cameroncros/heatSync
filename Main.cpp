@@ -8,6 +8,7 @@
 #include "Main.h"
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <sys/stat.h>
 
 #include "Database.h"
@@ -30,11 +31,15 @@
 
 Main::Main() {
 	// TODO Auto-generated constructor stub
-	int out;
+	struct stat tmp;
+	if (stat(".heatSync", &tmp) && S_ISDIR(tmp.st_mode)) {
+		mkdir(".heatSync", 0755); //todo: add check for preexisting directory
+			if (mkdir(".heatSync", 0755) != 0) {
+				std::cerr << "Cant make .heatSync directory" << std::endl;
+			}
+	}
+	if (stat(".heatSync/config", &tmp) && S_ISREG(tmp.st_mode)) {
 	readSettings(".heatSync/config");
-	out = mkdir(".heatSync", 0755); //todo: add check for preexisting directory
-	if (out != 0) {
-		std::cerr << "Cant make .heatSync directory" << std::endl;
 	}
 
 	database = NULL;
@@ -57,7 +62,14 @@ Main::~Main() {
 }
 
 void Main::readSettings(std::string settingsFile) {
-
+	std::ifstream file;
+	file.open(settingsFile, std::ios::in);
+	std::string name, value;
+	while (!file.eof()) {
+		std::getline(file, name, "=");
+		std::getline(file, &value, "\n");
+		std::cout << setting << "/" << value << std::endl;
+	}
 }
 
 
