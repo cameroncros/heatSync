@@ -10,6 +10,7 @@
 
 #include <cstdlib>
 #include <vector>
+#include <map>
 #include <string>
 
 class Share;
@@ -18,7 +19,7 @@ class Database;
 class Main {
 private:
 	std::vector<Share> shares;
-	//std::vector<Host> hosts;
+	std::map<std::string, std::string> settings;
 	Database *database;
 public:
 	Main();

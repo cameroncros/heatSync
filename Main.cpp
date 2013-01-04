@@ -32,14 +32,24 @@
 Main::Main() {
 	// TODO Auto-generated constructor stub
 	struct stat tmp;
-	if (stat(".heatSync", &tmp) && S_ISDIR(tmp.st_mode)) {
-		mkdir(".heatSync", 0755); //todo: add check for preexisting directory
-			if (mkdir(".heatSync", 0755) != 0) {
-				std::cerr << "Cant make .heatSync directory" << std::endl;
-			}
+	if (stat(".heatSync", &tmp) != 0) {
+		if (mkdir(".heatSync", 0755) != 0) {
+			std::cerr << "Can't make .heatSync directory" << std::endl;
+			exit(1);
+		}
 	}
-	if (stat(".heatSync/config", &tmp) && S_ISREG(tmp.st_mode)) {
-	readSettings(".heatSync/config");
+	if (S_ISDIR(tmp.st_mode) == 0) {
+		if (remove(".heatSync") != 0) {
+			std::cerr << "Can't delete .heatSync file" << std::endl;
+			exit(1);
+		}
+		if (mkdir(".heatSync", 0755) != 0) {
+			std::cerr << "Can't make .heatSync directory" << std::endl;
+			exit(1);
+		}
+	}
+	if (stat(".heatSync/config", &tmp) == 0 && S_ISREG(tmp.st_mode)) {
+		readSettings(".heatSync/config");
 	}
 
 	database = NULL;
@@ -62,13 +72,15 @@ Main::~Main() {
 }
 
 void Main::readSettings(std::string settingsFile) {
+	std::cout << "Reading Settings" << std::endl;
 	std::ifstream file;
-	file.open(settingsFile, std::ios::in);
+	file.open(settingsFile.c_str(), std::ios::in);
 	std::string name, value;
-	while (!file.eof()) {
-		std::getline(file, name, "=");
-		std::getline(file, &value, "\n");
-		std::cout << setting << "/" << value << std::endl;
+	while (file.is_open() && !file.eof()) {
+		std::getline(file, name, '=');
+		std::getline(file, value, '\n');
+		std::cout << name << "/" << value << std::endl;
+		settings[name]=value;
 	}
 }
 
