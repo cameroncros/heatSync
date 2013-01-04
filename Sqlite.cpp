@@ -11,7 +11,7 @@
 #include <sqlite3.h>
 #include <cstdlib>
 #include <iostream>
-#include <sstream>
+
 
 
 Sqlite::Sqlite() {

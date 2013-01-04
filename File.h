@@ -21,7 +21,7 @@ private:
 	std::string owner;
 	std::string group;
 	int fileid;
-
+	void computeHash();
 public:
 	File(std::string);
 	virtual ~File();
@@ -35,6 +35,7 @@ public:
 	std::string getOwner();
 	std::string getGroup();
 	int getFileId();
+
 };
 
 #endif /* FILE_H_ */
