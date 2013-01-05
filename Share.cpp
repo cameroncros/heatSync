@@ -14,7 +14,7 @@
 #include <iostream>
 
 Share::Share(Database &db) {
-	path = "/home/cameron/Projects/";
+	path = "/home/cameron/";
 	lastChanged = 0;
 	shareID = 1;
 	depth = 3;

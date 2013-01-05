@@ -51,7 +51,6 @@ Main::Main() {
 	if (stat(".heatSync/config", &tmp) == 0 && S_ISREG(tmp.st_mode)) {
 		readSettings(".heatSync/config");
 	}
-	new File("/home/cameron/asdf.png");
 
 	database = NULL;
 	std::cout << "Welcome to HeatSync." << std::endl;

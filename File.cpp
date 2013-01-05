@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <cstring>
 #include <fcntl.h>
+#include <unistd.h>
 
 
 
@@ -41,7 +42,7 @@ File::~File() {
 	// TODO Auto-generated destructor stub
 }
 
-void File::computeHash() {
+/*void File::computeHash() {
 	unsigned char *hashArray;
 	unsigned char *fData;
 	std::ostringstream hashStr;
@@ -54,15 +55,48 @@ void File::computeHash() {
 	}
 
 	fData = (unsigned char *)mmap(0, size, PROT_READ, MAP_SHARED, file, 0);
+	if (fData == MAP_FAILED) {
+		std::cerr << "Failed to open file for hashing: " << strerror(errno) << std::endl;
+		return;
+	}
 	hashArray = MD5(fData, size, NULL);
 	hashStr << std::hex << std::setfill( '0' );
 
 	for(int i=0; i <MD5_DIGEST_LENGTH; i++) {
         hashStr << std::setw(2) << (int)hashArray[i];
     }
+	close(file);
 
     hash = hashStr.str();
 	munmap(fData, size);
+}*/
+
+void File::computeHash() {
+	MD5_CTX mdContext;
+	int bytesRead;
+	unsigned char hashArray[MD5_DIGEST_LENGTH];
+	unsigned char data[1024];
+	std::ostringstream hashStr;
+
+	FILE *file = fopen(name.c_str(), "rb");
+	if (file == NULL) {
+		std::cerr << "Failed to open file for hashing: " << strerror(errno) << std::endl;
+		throw std::exception();
+	}
+	MD5_Init(&mdContext);
+	while ((bytesRead = fread(data, 1, 1024, file)) != 0) {
+		MD5_Update(&mdContext, data, bytesRead);
+	}
+	fclose(file);
+	MD5_Final (hashArray, &mdContext);
+
+	hashStr << std::hex << std::setfill( '0' );
+
+	for(int i=0; i <MD5_DIGEST_LENGTH; i++) {
+		hashStr << std::setw(2) << (int)hashArray[i];
+	}
+
+	hash = hashStr.str();
 }
 
 std::string File::getHash(){
