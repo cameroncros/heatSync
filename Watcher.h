@@ -12,6 +12,7 @@
 
 #include <sys/inotify.h>
 #include <string>
+#include <thread>
 
 #include "Share.h"
 #include "Database.h"
@@ -27,6 +28,7 @@ private:
 	Share *shr;
 	Database *db;
 	std::string path;
+	std::thread *trd;
 public:
 	Watcher(Share &, Database &, std::string);
 	virtual ~Watcher();

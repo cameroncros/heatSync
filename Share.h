@@ -26,7 +26,7 @@ private:
 	bool hidden;
 	std::string passhash;
 	int lastChanged;
-	std::vector<Watcher> watches;
+	std::vector<Watcher *> watches;
 	Database *database;
 public:
 	Share(Database &);

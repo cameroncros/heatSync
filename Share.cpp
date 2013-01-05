@@ -80,7 +80,7 @@ void Share::readDir(std::string path, int depth) {
 				case DT_DIR:
 					newpath = path;
 					newpath.append("/").append(tmp->d_name);
-					watches.push_back(Watcher(*this, *database, newpath));
+					watches.push_back(new Watcher(*this, *database, newpath));
 					readDir(newpath.c_str(), depth - 1);
 
 					break;
@@ -88,7 +88,7 @@ void Share::readDir(std::string path, int depth) {
 					if (symlink) {
 						newpath = path;
 						newpath.append("/").append(tmp->d_name);
-						watches.push_back(Watcher(*this, *database, newpath));
+						watches.push_back(new Watcher(*this, *database, newpath));
 						readDir(newpath.c_str(), depth - 1);				}
 					break;
 				case DT_UNKNOWN:
