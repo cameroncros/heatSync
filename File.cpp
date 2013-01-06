@@ -32,7 +32,11 @@ File::File(std::string fname) {
 	group = fstats.st_gid;
 	changed = fstats.st_mtim.tv_sec;
 	scanned = time(NULL);
-	computeHash();
+	try {
+		computeHash();
+	} catch (...) {
+		std::cerr << "hashing failed: " << name << std::endl;
+	}
 
 	// TODO Auto-generated constructor stub
 
@@ -41,35 +45,6 @@ File::File(std::string fname) {
 File::~File() {
 	// TODO Auto-generated destructor stub
 }
-
-/*void File::computeHash() {
-	unsigned char *hashArray;
-	unsigned char *fData;
-	std::ostringstream hashStr;
-	int file;
-	file = open(name.c_str(), O_RDONLY);
-
-	if (file == -1) {
-		std::cerr << "Failed to open file for hashing: " << strerror(errno) << std::endl;
-		return;
-	}
-
-	fData = (unsigned char *)mmap(0, size, PROT_READ, MAP_SHARED, file, 0);
-	if (fData == MAP_FAILED) {
-		std::cerr << "Failed to open file for hashing: " << strerror(errno) << std::endl;
-		return;
-	}
-	hashArray = MD5(fData, size, NULL);
-	hashStr << std::hex << std::setfill( '0' );
-
-	for(int i=0; i <MD5_DIGEST_LENGTH; i++) {
-        hashStr << std::setw(2) << (int)hashArray[i];
-    }
-	close(file);
-
-    hash = hashStr.str();
-	munmap(fData, size);
-}*/
 
 void File::computeHash() {
 	MD5_CTX mdContext;

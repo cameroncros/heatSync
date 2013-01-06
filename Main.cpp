@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "Database.h"
 #include "Sqlite.h"
@@ -58,11 +59,7 @@ Main::Main() {
 
 	//TODO: temp shit
 	shares.push_back(Share(*database));
-	//std::iterator<Share> iter = shares.begin();
-	//Scanner *scan = new Scanner(*shares.begin(), *database);
-	//delete(scan);
-
-
+	pause();
 }
 
 Main::~Main() {

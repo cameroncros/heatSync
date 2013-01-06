@@ -48,10 +48,9 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 			nFile.getOwner().c_str(),
 			nFile.getGroup().c_str()
 	);
-	switch (sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL )) {
-	case SQLITE_OK:
-		break;
-	case SQLITE_ABORT:
+	if (sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL ) == SQLITE_ABORT) {
+		sqlite3_free(sqlString);
+		sqlString = NULL;
 		std::cout << "File Exists, Updating instead;" << std::endl;
 		sqlString = sqlite3_mprintf("UPDATE files SET"
 				"fhash = '%q',"
@@ -77,11 +76,9 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 		}
 		sqlite3_free(sqlString);
 		sqlString = NULL;
-		break;
-
-	default:
-		break;
-
+	} else {
+		sqlite3_free(sqlString);
+		sqlString = NULL;
 	}
 
 	sqlString = sqlite3_mprintf("INSERT OR REPLACE INTO sharefiles "
@@ -102,41 +99,8 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 		std::cout << sqlString << std::endl;
 		std::cerr << sqlite3_errmsg(dbHandle) << std::endl;
 	}
-
-
-
 	sqlite3_free(sqlString);
 	sqlString = NULL;
-
-	/*std::ostringstream sqlString;
-	sqlString << "INSERT OR REPLACE INTO files "
-			<< "(fname,fhash,fdatemod,fsize,fperm,fowner,fgroup)"
-			<< " VALUES ("
-			<< nFile.getName() << ","
-			<< nFile.getHash() << ","
-			<< nFile.getChanged() << ","
-			<< nFile.getSize() << ","
-			<< nFile.getPerm() << ","
-			<< nFile.getOwner() << ","
-			<< nFile.getGroup()
-			<< ");" << std::endl;
-	if (sqlite3_exec(dbHandle,sqlString.str().c_str(), NULL, 0, NULL ) != SQLITE_OK) {
-		std::cerr << sqlite3_errmsg(dbHandle) << std::endl;
-	}
-	sqlString << "INSERT OR REPLACE INTO sharefiles "
-			<< "(shareid, fileid) VALUES ("
-			<< shr.getShareID() << ","
-			<< "SELECT fileid FROM files WHERE "
-			<< "fhash = "
-			<< nFile.getHash()
-			<< "AND fname = "
-			<< nFile.getName()
-			<< "AND fdatemod= "
-			<< nFile.getChanged()
-			<< ")" << std::endl;
-	if (sqlite3_exec(dbHandle,sqlString.str().c_str(), NULL, 0, NULL ) != SQLITE_OK) {
-		std::cerr << sqlite3_errmsg(dbHandle) << std::endl;
-	}*/
 }
 
 Share *Sqlite::getShareDetails() {

@@ -14,7 +14,7 @@
 #include <iostream>
 
 Share::Share(Database &db) {
-	path = "/home/cameron/";
+	path = "/home/cameron/Projects";
 	lastChanged = 0;
 	shareID = 1;
 	depth = 3;
@@ -68,6 +68,7 @@ void Share::readDir(std::string path, int depth) {
 		dir = opendir(path.c_str());
 		if (dir == NULL) {
 			std::cerr << "Can't open directory: " << path << std::endl;
+			closedir(dir);
 			return;
 		}
 
@@ -89,7 +90,8 @@ void Share::readDir(std::string path, int depth) {
 						newpath = path;
 						newpath.append("/").append(tmp->d_name);
 						watches.push_back(new Watcher(*this, *database, newpath));
-						readDir(newpath.c_str(), depth - 1);				}
+						readDir(newpath.c_str(), depth - 1);
+					}
 					break;
 				case DT_UNKNOWN:
 					std::cerr << "Unknown File" << std::endl;
@@ -104,6 +106,7 @@ void Share::readDir(std::string path, int depth) {
 					break;
 				}
 			}
+
 		}
 
 

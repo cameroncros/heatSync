@@ -35,12 +35,11 @@ void Watcher::work() {
 	inotify_add_watch(watchfile,path.c_str(),IN_CLOSE_WRITE|IN_ATTRIB|IN_CREATE|IN_DELETE|IN_MODIFY|IN_DELETE|IN_DELETE_SELF|IN_MOVE_SELF|IN_MOVED_FROM|IN_MOVED_TO);
 	while(true) {
 		std::string newpath = path;
-		newpath.append(event->name);
 		read(watchfile, event, sizeof(struct inotify_event) + NAME_MAX + 1);
+		newpath.append("/").append(event->name);
 		nFile = new File(newpath);
 		db->insertFileDetails(*nFile, *shr);
 		delete(nFile);
-		std::cout << event->name << std::endl;
 	}
 }
 
