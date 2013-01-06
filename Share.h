@@ -26,8 +26,8 @@ private:
 	bool hidden;
 	std::string passhash;
 	int lastChanged;
-	std::vector<Watcher *> watches;
 	Database *database;
+	Watcher *watch;
 public:
 	Share(Database &);
 	virtual ~Share();
@@ -38,7 +38,7 @@ public:
 	bool getSymlink();
 	bool getHidden();
 	bool checkPassword();
-	void readDir(std::string path, int depth);
+	void readDir(std::string path);
 
 };
 

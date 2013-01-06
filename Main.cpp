@@ -58,7 +58,9 @@ Main::Main() {
 	database = new Sqlite();
 
 	//TODO: temp shit
+
 	shares.push_back(Share(*database));
+
 	pause();
 }
 

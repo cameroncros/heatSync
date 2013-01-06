@@ -13,6 +13,7 @@
 #include <sys/inotify.h>
 #include <string>
 #include <thread>
+#include <map>
 
 #include "Share.h"
 #include "Database.h"
@@ -24,16 +25,17 @@ class Share;
 class Watcher {
 private:
 	int watchfile;
-	struct inotify_event *event;
 	Share *shr;
 	Database *db;
 	std::string path;
 	std::thread *trd;
+	std::map<int, std::string> watchPath;
 public:
-	Watcher(Share &, Database &, std::string);
+	Watcher(Share &, Database &);
 	virtual ~Watcher();
-
-	void work();
+	void addWatch(std::string path);
+	void parseEvent(inotify_event *event);
+	void monitor();
 };
 
 #endif /* WATCHER_H_ */
