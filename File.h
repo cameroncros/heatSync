@@ -21,6 +21,7 @@ private:
 	std::string owner;
 	std::string group;
 	int fileid;
+	int deleted;
 	void computeHash();
 public:
 	File(std::string);
@@ -35,6 +36,7 @@ public:
 	std::string getOwner();
 	std::string getGroup();
 	int getFileId();
+	int getDeleted();
 
 };
 

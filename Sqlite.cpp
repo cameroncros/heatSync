@@ -38,15 +38,16 @@ File *Sqlite::getFileDetails() {
 void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 	char *sqlString = NULL;
 	sqlString = sqlite3_mprintf("INSERT OR ABORT INTO files "
-			"(fname,fhash,fdatemod,fsize,fperm,fowner,fgroup)"
-			" VALUES ('%q','%q','%i','%i','%i','%q','%q');\n",
+			"(fname,fhash,fdatemod,fsize,fperm,fowner,fgroup,fdeleted)"
+			" VALUES ('%q','%q','%i','%i','%i','%q','%q','%i');\n",
 			nFile.getName().c_str(),
 			nFile.getHash().c_str(),
 			nFile.getChanged(),
 			nFile.getSize(),
 			nFile.getPerm(),
 			nFile.getOwner().c_str(),
-			nFile.getGroup().c_str()
+			nFile.getGroup().c_str(),
+			nFile.getDeleted()
 	);
 	if (sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL ) == SQLITE_ABORT) {
 		sqlite3_free(sqlString);
@@ -59,7 +60,8 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 				"fsize = '%i',"
 				"fperm = '%i',"
 				"fowner = '%q',"
-				"fgroup = '%q'"
+				"fgroup = '%q',"
+				"fdeleted = '%i',"
 				"WHERE fname = '%q'",
 				nFile.getHash().c_str(),
 				nFile.getScanned(),
@@ -68,6 +70,7 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 				nFile.getPerm(),
 				nFile.getOwner().c_str(),
 				nFile.getGroup().c_str(),
+				nFile.getDeleted(),
 				nFile.getName().c_str()
 		);
 		if (sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL ) != SQLITE_OK) {
@@ -160,7 +163,8 @@ void Sqlite::initialiseDatabase() {
 			"fsize INTEGER NOT NULL,"
 			"fperm INTEGER,"
 			"fowner TEXT,"
-			"fgroup TEXT"
+			"fgroup TEXT,"
+			"fdeleted INTEGER"
 			")", NULL, 0, NULL) ) {
 		std::cerr << sqlite3_errmsg(dbHandle) << std::endl;
 	}

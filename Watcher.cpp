@@ -74,8 +74,9 @@ void Watcher::parseEvent(inotify_event *event) {
 		/*created*/
 	case IN_DELETE:
 	case IN_MOVED_FROM:
+	default:
 		/*deleted*/
-		/*struct stat fstats;
+		struct stat fstats;
 		stat(fname.c_str(), &fstats);
 		if (S_ISDIR(fstats.st_mode)) {
 			shr->readDir(fname);
@@ -97,7 +98,7 @@ void Watcher::parseEvent(inotify_event *event) {
 				free(fl);
 			}
 
-		}*/
+		}
 		std::cout << fname << " Was Changed" << std::endl;
 		break;
 	case IN_DELETE_SELF:
@@ -106,10 +107,10 @@ void Watcher::parseEvent(inotify_event *event) {
 		watchPath.erase(event->wd);
 		std::cout << watchPath[event->wd] << "was deleted or moved" << std::endl;
 		break;
-	default:
+	/*default:
 		std::cout << fname << " Something Else Happened - " << event->mask << std::endl;
 		throw std::exception();
-		break;
+		break;*/
 
 	}
 

@@ -32,9 +32,11 @@ File::File(std::string fname) {
 	group = fstats.st_gid;
 	changed = fstats.st_mtim.tv_sec;
 	scanned = time(NULL);
+	deleted = 0;
 	try {
 		computeHash();
 	} catch (...) {
+		deleted = 1;
 		std::cerr << "hashing failed: " << name << std::endl;
 	}
 
@@ -106,7 +108,11 @@ std::string File::getGroup() {
 	return group;
 }
 
-int File::getFileId(){
+int File::getFileId() {
 	return fileid;
+}
+
+int File::getDeleted() {
+	return deleted;
 }
 
