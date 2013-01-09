@@ -74,7 +74,7 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 				nFile.getName().c_str()
 		);
 		if (sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL ) != SQLITE_OK) {
-			std::cout << sqlString << std::endl;
+			std::cerr << sqlString << std::endl;
 			std::cerr << sqlite3_errmsg(dbHandle) << std::endl;
 		}
 		sqlite3_free(sqlString);
@@ -99,7 +99,7 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 			nFile.getChanged()
 	);
 	if (sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL ) != SQLITE_OK) {
-		std::cout << sqlString << std::endl;
+		std::cerr << sqlString << std::endl;
 		std::cerr << sqlite3_errmsg(dbHandle) << std::endl;
 	}
 	sqlite3_free(sqlString);

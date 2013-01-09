@@ -15,12 +15,14 @@
 
 class Share;
 class Database;
+class Network;
 
 class Main {
 private:
 	std::vector<Share> shares;
 	std::map<std::string, std::string> settings;
 	Database *database;
+	Network *network;
 public:
 	Main();
 	virtual ~Main();

@@ -18,6 +18,7 @@
 //TODO: not needed
 #include "File.h"
 #include "Share.h"
+#include "Network.h"
 
 
 /*
@@ -59,7 +60,9 @@ Main::Main() {
 
 	//TODO: temp shit
 
-	shares.push_back(Share(*database));
+	network = new Network();
+	free(network);
+	//shares.push_back(Share(*database));
 
 	pause();
 }
