@@ -6,6 +6,7 @@
  */
 
 #include "Network.h"
+#include "Host.h"
 
 #include <avahi-client/client.h>
 #include <avahi-client/lookup.h>
@@ -19,11 +20,14 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <map>
 #include <unistd.h>
 
 AvahiSimplePoll *simple_poll;
 AvahiEntryGroup *group;
 std::string name;
+
+std::map<std::string, Host *> avahiHosts;
 
 Network::Network() {
 	client = NULL;
@@ -95,7 +99,7 @@ void Network::avahiDiscovery() {
 	}
 
 	/* Create the service browser */
-	if (!(sb = avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_http._tcp", NULL, (AvahiLookupFlags)0, browse_callback, client))) {
+	if (!(sb = avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_heatSync._tcp", NULL, (AvahiLookupFlags)0, browse_callback, client))) {
 		std::cerr << "Failed to create service browser: %s\n" << avahi_strerror(avahi_client_errno(client)) << std::endl;
 	}
 	/* Run the main loop */
@@ -182,6 +186,8 @@ void browse_callback(
 		break;
 
 	case AVAHI_BROWSER_REMOVE:
+		delete(avahiHosts[name]);
+		avahiHosts.erase(name);
 		std::cerr << "(Browser) REMOVE: service '" << name << "' of type '" << type << "' in domain '" << domain << std::endl;
 		break;
 
@@ -231,6 +237,11 @@ void resolve_callback(
 		std::cerr << "wide_area: " << !!(flags & AVAHI_LOOKUP_RESULT_WIDE_AREA) << std::endl;
 		std::cerr << "multicast: " << !!(flags & AVAHI_LOOKUP_RESULT_MULTICAST) << std::endl;
 		std::cerr << "cached: " << !!(flags & AVAHI_LOOKUP_RESULT_CACHED) << std::endl;
+		if (!(flags & AVAHI_LOOKUP_RESULT_OUR_OWN)) {
+			avahiHosts[name] = new Host(name, host_name, port, t);
+			//todo:create new host here;
+		}
+
 
 		avahi_free(t);
 	}
@@ -266,7 +277,7 @@ void create_services(AvahiClient *c) {
 		 * the service type (IPP vs. BSD LPR). Only services with the
 		 * same name should be put in the same entry group. */
 
-		if ((ret = avahi_entry_group_add_service(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, (AvahiPublishFlags)0, name.c_str(), "_heatSync._tcp", NULL, NULL, PORT, "test=blah", r, NULL )) < 0) { //todo: findout what the fuck the last 3 arguements are for
+		if ((ret = avahi_entry_group_add_service(group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, (AvahiPublishFlags)0, name.c_str(), "_heatSync._tcp", NULL, NULL, PORT, "version=0.1", NULL, NULL )) < 0) { //todo: magically put in version no.
 			if (ret == AVAHI_ERR_COLLISION) {
 				name = avahi_alternative_service_name(name.c_str());
 

@@ -7,8 +7,11 @@
 
 #include "Host.h"
 
-Host::Host() {
-	version = 0;
+Host::Host(std::string nm, std::string hostn, int prt, std::string vers) {
+	name = nm;
+	hostname = hostn;
+	port = prt;
+	version = vers;
 
 	// TODO Auto-generated constructor stub
 

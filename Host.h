@@ -8,17 +8,17 @@
 #ifndef HOST_H_
 #define HOST_H_
 
-#include <vector>
-
-#include "Share.h"
-class Share;
+#include <string>
 
 class Host {
 private:
-	int version;
-	std::vector<Share> shares;
+	std::string name;
+	std::string hostname;
+	int port;
+	std::string version;
+
 public:
-	Host();
+	Host(std::string name, std::string hostn, int port, std::string version);
 	virtual ~Host();
 };
 
