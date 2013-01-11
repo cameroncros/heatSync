@@ -15,21 +15,21 @@
 
 class Share;
 class Database;
-class Network;
+class Avahi;
 
 class Main {
 private:
 	std::vector<Share> shares;
 	std::map<std::string, std::string> settings;
 	Database *database;
-	Network *network;
+	Avahi *avahi;
 public:
 	Main();
 	virtual ~Main();
 
 	void addShare(Share &);
 	void removeShare(Share &);
-	void readSettings(std::string);
+	void readSettings(char *);
 
 	Share *getShareList();
 	//Host *getHostList();

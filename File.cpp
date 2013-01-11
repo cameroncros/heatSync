@@ -21,7 +21,7 @@
 
 
 
-File::File(std::string fname) {
+File::File(std::string &fname) {
 	struct stat fstats;
 	stat(fname.c_str(), &fstats);
 	fileid = 0;

@@ -38,7 +38,7 @@ public:
 	bool getSymlink();
 	bool getHidden();
 	bool checkPassword();
-	void readDir(std::string path);
+	void readDir(std::string &path);
 
 };
 

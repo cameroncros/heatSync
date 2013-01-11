@@ -63,7 +63,7 @@ bool Share::checkPassword() {
 	return true;
 }
 
-void Share::readDir(std::string searchPath) {
+void Share::readDir(std::string &searchPath) {
 	DIR *dir = NULL;
 	dirent *tmp = NULL;
 	File *file = NULL;

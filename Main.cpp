@@ -18,7 +18,8 @@
 //TODO: not needed
 #include "File.h"
 #include "Share.h"
-#include "Network.h"
+#include "Avahi.h"
+#include "SecureConnection.h"
 
 
 /*
@@ -51,7 +52,7 @@ Main::Main() {
 		}
 	}
 	if (stat(".heatSync/config", &tmp) == 0 && S_ISREG(tmp.st_mode)) {
-		readSettings(".heatSync/config");
+		readSettings((char *)".heatSync/config");
 	}
 
 	database = NULL;
@@ -60,10 +61,13 @@ Main::Main() {
 
 	//TODO: temp shit
 
-	network = new Network();
-	free(network);
-	//shares.push_back(Share(*database));
-
+	SecureConnection *secure;
+	secure = new SecureConnection((char *)"www.openssl.org");
+	free(secure);
+	avahi = new Avahi();
+	free(avahi);
+	//
+	shares.push_back(Share(*database));
 	pause();
 }
 
@@ -73,10 +77,10 @@ Main::~Main() {
 	// TODO Auto-generated destructor stub
 }
 
-void Main::readSettings(std::string settingsFile) {
+void Main::readSettings(char *settingsFile) {
 	std::cout << "Reading Settings" << std::endl;
 	std::ifstream file;
-	file.open(settingsFile.c_str(), std::ios::in);
+	file.open(settingsFile, std::ios::in);
 	std::string name, value;
 	while (file.is_open() && !file.eof()) {
 		std::getline(file, name, '=');

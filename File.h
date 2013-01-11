@@ -24,7 +24,7 @@ private:
 	int deleted;
 	void computeHash();
 public:
-	File(std::string);
+	File(std::string &);
 	virtual ~File();
 
 	std::string getHash();

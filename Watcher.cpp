@@ -41,7 +41,7 @@ Watcher::~Watcher() {
 	// TODO Auto-generated destructor stub
 }
 
-void Watcher::addWatch(std::string path) {
+void Watcher::addWatch(std::string &path) {
 	int wd = inotify_add_watch(watchfile,path.c_str(),IN_CLOSE_WRITE|IN_ATTRIB|IN_CREATE|IN_DELETE|IN_MODIFY|IN_DELETE|IN_DELETE_SELF|IN_MOVE_SELF|IN_MOVED_FROM|IN_MOVED_TO);
 	if (wd == -1) {
 		std::cerr << "Can't add watch: " << path << " - "<<strerror(errno) << std::endl;

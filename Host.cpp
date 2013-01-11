@@ -7,7 +7,7 @@
 
 #include "Host.h"
 
-Host::Host(std::string nm, std::string hostn, int prt, std::string vers) {
+Host::Host(char *nm, char *hostn, int prt, char *vers) {
 	name = nm;
 	hostname = hostn;
 	port = prt;

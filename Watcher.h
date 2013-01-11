@@ -33,7 +33,7 @@ private:
 public:
 	Watcher(Share &, Database &);
 	virtual ~Watcher();
-	void addWatch(std::string path);
+	void addWatch(std::string &path);
 	void parseEvent(inotify_event *event);
 	void monitor();
 };

@@ -18,7 +18,7 @@ private:
 	std::string version;
 
 public:
-	Host(std::string name, std::string hostn, int port, std::string version);
+	Host(char *nm, char *hostn, int prt, char *vers);
 	virtual ~Host();
 };
 
