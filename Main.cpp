@@ -18,7 +18,7 @@
 //TODO: not needed
 #include "File.h"
 #include "Share.h"
-#include "Avahi.h"
+//#include "Avahi.h"
 #include "SecureConnection.h"
 
 
@@ -63,7 +63,7 @@ Main::Main() {
 
 	SecureConnection *secure;
 	secure = new SecureConnection((char *)"www.openssl.org");
-	free(secure);
+	delete(secure);
 	avahi = new Avahi();
 	free(avahi);
 	//

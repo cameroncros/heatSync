@@ -33,20 +33,27 @@ SecureConnection::SecureConnection(char *ad) {
 	}
 	for (p = servinfo; p != NULL; p = p->ai_next) {
 		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+			close(sock);
+			sock = 0;
 			std::cerr << "(Secure Connection) socket: " << strerror(errno) << std::endl;
-			return;
 		}
 		if (connect(sock, p->ai_addr, p->ai_addrlen) == -1) {
 			close(sock);
+			sock = 0;
 			std::cerr << "(Secure Connection) socket: " << strerror(errno) << std::endl;
-			return;
+		} else {
+			break;
 		}
 	}
+	freeaddrinfo(servinfo);
 	if (p == NULL) {
+		if (sock) {
+			close(sock);
+			sock = 0;
+		}
 		std::cerr << "(Secure Connection) Failed Connection: " << strerror(errno) << std::endl;
 		return;
 	}
-	freeaddrinfo(servinfo);
 	//finished creating a socket, now add the ssl part(curtesy of: http://savetheions.com/2010/01/16/quickly-using-openssl-in-c/)
 	SSL_load_error_strings();
 	SSL_library_init();
