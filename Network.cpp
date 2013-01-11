@@ -20,38 +20,58 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <thread>
 #include <map>
 #include <unistd.h>
 
-AvahiSimplePoll *simple_poll;
+AvahiSimplePoll *simple_publish_poll;
+AvahiSimplePoll *simple_discovery_poll;
 AvahiEntryGroup *group;
 std::string name;
 
 std::map<std::string, Host *> avahiHosts;
 
 Network::Network() {
-	client = NULL;
+	discoveryClient = NULL;
+	publishClient = NULL;
 	sb = NULL;
-	simple_poll = NULL;
+	simple_publish_poll = NULL;
 	name = "heatSync";
 	gethostname(hostname, sizeof(hostname));
 	name.append(hostname);
 
-	avahiDiscovery();
+	pubtrd = new std::thread(&Network::avahiDiscovery, this);
+	distrd = new std::thread(&Network::avahiPublish, this);
 
 }
 
 Network::~Network() {
-	if (client)
-		avahi_client_free(client);
+	if (discoveryClient) {
+		avahi_client_free(discoveryClient);
+	}
 
-	if (simple_poll)
-		avahi_simple_poll_free(simple_poll);
+	if (publishClient) {
+		avahi_client_free(publishClient);
+	}
+
+	if (simple_discovery_poll) {
+		avahi_simple_poll_free(simple_discovery_poll);
+	}
+
+	if (sb) {
+		avahi_service_browser_free(sb);
+	}
+	if (simple_publish_poll) {
+		avahi_simple_poll_free(simple_publish_poll);
+	}
+	distrd->join();
+	pubtrd->join();
 
 	// TODO Auto-generated destructor stub
 }
 /*browse Callbacks*/
-void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata);
+void client_publish_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata);
+void client_discovery_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata);
 void browse_callback(
 		AvahiServiceBrowser *b,
 		AvahiIfIndex interface,
@@ -86,27 +106,90 @@ void Network::avahiDiscovery() {
 	int error;
 
 	/* Allocate main loop object */
-	if (!(simple_poll = avahi_simple_poll_new())) {
+	if (!(simple_discovery_poll = avahi_simple_poll_new())) {
 		std::cerr << "Failed to create simple poll object." << std::endl;
 	}
 
 	/* Allocate a new client */
-	client = avahi_client_new(avahi_simple_poll_get(simple_poll), (AvahiClientFlags)0, client_callback, NULL, &error);
+	discoveryClient = avahi_client_new(avahi_simple_poll_get(simple_discovery_poll), (AvahiClientFlags)0, client_discovery_callback, NULL, &error);
 
 	/* Check whether creating the client object succeeded */
-	if (!client) {
+	if (!discoveryClient) {
 		std::cerr << "Failed to create client: %s\n" <<  avahi_strerror(error) << std::endl;
 	}
 
 	/* Create the service browser */
-	if (!(sb = avahi_service_browser_new(client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_heatSync._tcp", NULL, (AvahiLookupFlags)0, browse_callback, client))) {
-		std::cerr << "Failed to create service browser: %s\n" << avahi_strerror(avahi_client_errno(client)) << std::endl;
+	if (!(sb = avahi_service_browser_new(discoveryClient, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_heatSync._tcp", NULL, (AvahiLookupFlags)0, browse_callback, discoveryClient))) {
+		std::cerr << "Failed to create service browser: %s\n" << avahi_strerror(avahi_client_errno(discoveryClient)) << std::endl;
 	}
 	/* Run the main loop */
-	avahi_simple_poll_loop(simple_poll);
+	avahi_simple_poll_loop(simple_discovery_poll);
 }
 
-void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata) {
+void Network::avahiPublish() {
+	int error;
+
+	/* Allocate main loop object */
+	if (!(simple_publish_poll = avahi_simple_poll_new())) {
+		std::cerr << "Failed to create simple poll object." << std::endl;
+	}
+
+	/* Allocate a new client */
+	publishClient = avahi_client_new(avahi_simple_poll_get(simple_publish_poll), (AvahiClientFlags)0, client_publish_callback, NULL, &error);
+
+	/* Check whether creating the client object succeeded */
+	if (!publishClient) {
+		std::cerr << "Failed to create client: %s\n" <<  avahi_strerror(error) << std::endl;
+	}
+
+	/* Run the main loop */
+	avahi_simple_poll_loop(simple_publish_poll);
+}
+
+void client_discovery_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata) {
+	assert(c);
+
+	/* Called whenever the client or server state changes */
+	switch (state) {
+	case AVAHI_CLIENT_S_RUNNING:
+
+		/* The server has startup successfully and registered its host
+		 * name on the network, so it's time to create our services */
+		//create_services(c);
+		break;
+
+	case AVAHI_CLIENT_FAILURE:
+
+		std::cerr << "Client failure: " << avahi_strerror(avahi_client_errno(c)) << std::endl;
+		avahi_simple_poll_quit(simple_publish_poll);
+
+		break;
+
+	case AVAHI_CLIENT_S_COLLISION:
+
+		/* Let's drop our registered services. When the server is back
+		 * in AVAHI_SERVER_RUNNING state we will register them
+		 * again with the new host name. */
+
+	case AVAHI_CLIENT_S_REGISTERING:
+
+		/* The server records are now being established. This
+		 * might be caused by a host name change. We need to wait
+		 * for our own records to register until the host name is
+		 * properly esatblished. */
+
+		if (group)
+			avahi_entry_group_reset(group);
+
+		break;
+
+	case AVAHI_CLIENT_CONNECTING:
+		;
+		break;
+	}
+}
+
+void client_publish_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata) {
 	assert(c);
 
 	/* Called whenever the client or server state changes */
@@ -121,7 +204,7 @@ void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED vo
 	case AVAHI_CLIENT_FAILURE:
 
 		std::cerr << "Client failure: " << avahi_strerror(avahi_client_errno(c)) << std::endl;
-		avahi_simple_poll_quit(simple_poll);
+		avahi_simple_poll_quit(simple_publish_poll);
 
 		break;
 
@@ -169,7 +252,7 @@ void browse_callback(
 	case AVAHI_BROWSER_FAILURE:
 
 		std::cerr << "(Browser) " << avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(b))) << std::endl;
-		avahi_simple_poll_quit(simple_poll);
+		avahi_simple_poll_quit(simple_publish_poll);
 		return;
 
 	case AVAHI_BROWSER_NEW:
@@ -225,19 +308,20 @@ void resolve_callback(
 	case AVAHI_RESOLVER_FOUND: {
 		char a[AVAHI_ADDRESS_STR_MAX], *t;
 
-		std::cerr << "Service '" << name << "' of type '" << type << "' in domain '" << domain << "':" << std::endl;
+		if (!(flags & AVAHI_LOOKUP_RESULT_LOCAL)) {
+			std::cerr << "Service '" << name << "' of type '" << type << "' in domain '" << domain << "':" << std::endl;
 
-		avahi_address_snprint(a, sizeof(a), address);
-		t = avahi_string_list_to_string(txt);
-		std::cerr << host_name << ":" <<port << "(" << a << ")" << std::endl;
-		std::cerr << "TXT=" << t << std::endl;
-		std::cerr << "cookie is " << avahi_string_list_get_service_cookie(txt) << std::endl;
-		std::cerr << "is_local: " << !!(flags & AVAHI_LOOKUP_RESULT_LOCAL) << std::endl;
-		std::cerr << "our_own: " << !!(flags & AVAHI_LOOKUP_RESULT_OUR_OWN) << std::endl;
-		std::cerr << "wide_area: " << !!(flags & AVAHI_LOOKUP_RESULT_WIDE_AREA) << std::endl;
-		std::cerr << "multicast: " << !!(flags & AVAHI_LOOKUP_RESULT_MULTICAST) << std::endl;
-		std::cerr << "cached: " << !!(flags & AVAHI_LOOKUP_RESULT_CACHED) << std::endl;
-		if (!(flags & AVAHI_LOOKUP_RESULT_OUR_OWN)) {
+			avahi_address_snprint(a, sizeof(a), address);
+			t = avahi_string_list_to_string(txt);
+			std::cerr << host_name << ":" <<port << "(" << a << ")" << std::endl;
+			std::cerr << "TXT=" << t << std::endl;
+			std::cerr << "cookie is " << avahi_string_list_get_service_cookie(txt) << std::endl;
+			std::cerr << "is_local: " << !!(flags & AVAHI_LOOKUP_RESULT_LOCAL) << std::endl;
+			std::cerr << "our_own: " << !!(flags & AVAHI_LOOKUP_RESULT_OUR_OWN) << std::endl;
+			std::cerr << "wide_area: " << !!(flags & AVAHI_LOOKUP_RESULT_WIDE_AREA) << std::endl;
+			std::cerr << "multicast: " << !!(flags & AVAHI_LOOKUP_RESULT_MULTICAST) << std::endl;
+			std::cerr << "cached: " << !!(flags & AVAHI_LOOKUP_RESULT_CACHED) << std::endl;
+
 			avahiHosts[name] = new Host(name, host_name, port, t);
 			//todo:create new host here;
 		}
@@ -298,7 +382,7 @@ void create_services(AvahiClient *c) {
 		}
 	}
 
-	avahi_simple_poll_quit(simple_poll);
+	avahi_simple_poll_quit(simple_publish_poll);
 }
 
 void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_GCC_UNUSED void *userdata) {
@@ -331,7 +415,7 @@ void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_
 		std::cerr << "Entry group failure: " << avahi_strerror(avahi_client_errno(avahi_entry_group_get_client(g))) << std::endl;
 
 		/* Some kind of failure happened while we were registering our services */
-		avahi_simple_poll_quit(simple_poll);
+		avahi_simple_poll_quit(simple_publish_poll);
 		break;
 
 	case AVAHI_ENTRY_GROUP_UNCOMMITED:

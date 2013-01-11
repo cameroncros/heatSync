@@ -14,8 +14,10 @@
 #include <avahi-common/simple-watch.h>
 #include <string>
 #include <limits.h>
+#include <thread>
 
-extern AvahiSimplePoll *simple_poll;
+extern AvahiSimplePoll *simple_publish_poll;
+extern AvahiSimplePoll *simple_discovery_poll;
 extern AvahiEntryGroup *group;
 extern std::string name;
 
@@ -23,9 +25,12 @@ extern std::string name;
 
 class Network {
 private:
-	AvahiClient *client;
+	AvahiClient *publishClient;
+	AvahiClient *discoveryClient;
 	AvahiServiceBrowser *sb;
 	char hostname[HOST_NAME_MAX];
+	std::thread *pubtrd;
+	std::thread *distrd;
 
 	struct timeval tv;
 
@@ -33,6 +38,7 @@ public:
 	Network();
 	virtual ~Network();
 	void avahiDiscovery();
+	void avahiPublish();
 
 	void create_services(AvahiClient *c);
 
