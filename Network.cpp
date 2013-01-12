@@ -78,7 +78,7 @@ void Network::sockSetup() {
 			listenSock = 0;
 		}
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") Failed Connection: " << strerror(errno) << std::endl;
-		return;
+		throw std::exception();
 	}
 }
 

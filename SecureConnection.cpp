@@ -13,6 +13,7 @@
 #include <iostream>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/socket.h>
 
 
 
@@ -125,9 +126,29 @@ SecureConnection::~SecureConnection() {
 }
 
 void SecureConnection::sendData(void *data, int size) {
-
+	int total = 0, sent;
+	while (total != size) {
+		if ((sent = send((long int)secure, data, size-total, 0)) != -1) {
+			total += sent;
+		} else {
+			std::cerr << "(Secure Connection) recv: " << strerror(errno) << std::endl;
+			throw std::exception();
+		}
+	}
 }
 
-void SecureConnection::getData(void *file, int size) {
-	;
+void SecureConnection::getData(void *file, int *size) {
+	if (recv((long int)secure, &size, sizeof(int), 0) == -1) {
+		std::cerr << "(Secure Connection) recv: " << strerror(errno) << std::endl;
+		throw std::exception();
+		return;
+	}
+	int total = 0, recvd;
+	while (total != *size) {
+		if ((recvd = recv((long int)secure, &file+total, *size-total, 0))== -1) {
+			total += recvd;
+		} else {
+			throw std::exception();
+		}
+	}
 }

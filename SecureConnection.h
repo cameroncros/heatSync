@@ -22,7 +22,7 @@ public:
 	SecureConnection(int);
 	virtual ~SecureConnection();
 	void sendData(void *, int);
-	void getData(void *, int);
+	void getData(void *, int *);
 
 };
 
