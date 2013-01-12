@@ -18,7 +18,7 @@
 //TODO: not needed
 #include "File.h"
 #include "Share.h"
-//#include "Avahi.h"
+#include "Avahi.h"
 #include "SecureConnection.h"
 
 
@@ -61,11 +61,9 @@ Main::Main() {
 
 	//TODO: temp shit
 
-	SecureConnection *secure;
-	secure = new SecureConnection((char *)"www.openssl.org");
-	delete(secure);
-	avahi = new Avahi();
-	free(avahi);
+	Network *net;
+	net = new Network();
+	delete(net);
 	//
 	shares.push_back(Share(*database));
 	pause();

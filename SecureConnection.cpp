@@ -79,6 +79,37 @@ SecureConnection::SecureConnection(char *ad) {
 
 }
 
+SecureConnection::SecureConnection(int sk) {
+	sock = sk;
+	secure = NULL;
+	sslContext = NULL;
+
+
+	//finished creating a socket, now add the ssl part(curtesy of: http://savetheions.com/2010/01/16/quickly-using-openssl-in-c/)
+	SSL_load_error_strings();
+	SSL_library_init();
+	if ((sslContext = SSL_CTX_new(SSLv23_client_method ())) == NULL) {
+		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+		return;
+	}
+	if ((secure = SSL_new(sslContext)) == NULL) {
+		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+		return;
+	}
+	if (!SSL_set_fd(secure, sock)) {
+		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+		return;
+	}
+	if (SSL_connect (secure) != 1) {
+		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+		return;
+	}
+
+
+	// TODO Auto-generated constructor stub
+
+}
+
 SecureConnection::~SecureConnection() {
 	if (sock) {
 		close(sock);
