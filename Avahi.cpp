@@ -161,7 +161,7 @@ void client_discovery_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC
 	case AVAHI_CLIENT_FAILURE:
 
 		std::cerr << "Client failure: " << avahi_strerror(avahi_client_errno(c)) << std::endl;
-		avahi_simple_poll_quit(simple_publish_poll);
+		avahi_simple_poll_quit(simple_discovery_poll);
 
 		break;
 
@@ -323,11 +323,12 @@ void resolve_callback(
 			std::cerr << "cached: " << !!(flags & AVAHI_LOOKUP_RESULT_CACHED) << std::endl;
 
 			avahiHosts[name] = new Host((char *)name, (char *)host_name, port, (char *)t);
+			avahi_free(t);
 			//todo:create new host here;
 		}
 
 
-		avahi_free(t);
+
 	}
 	}
 

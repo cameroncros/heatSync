@@ -19,7 +19,7 @@
 
 Network::Network() {
 	sockSetup();
-	//ava = new Avahi();
+	ava = new Avahi();
 	int sk;
 	while (true) {
 		sk = sockListen();
