@@ -39,9 +39,11 @@ Avahi::Avahi() {
 	name = "heatSync";
 	gethostname(hostname, sizeof(hostname));
 	name.append(hostname);
+	pubtrd = new std::thread(&Avahi::avahiPublish, this);
+	sleep(3);
+	distrd = new std::thread(&Avahi::avahiDiscovery, this);
 
-	pubtrd = new std::thread(&Avahi::avahiDiscovery, this);
-	distrd = new std::thread(&Avahi::avahiPublish, this);
+
 
 }
 
@@ -322,10 +324,11 @@ void resolve_callback(
 			std::cerr << "multicast: " << !!(flags & AVAHI_LOOKUP_RESULT_MULTICAST) << std::endl;
 			std::cerr << "cached: " << !!(flags & AVAHI_LOOKUP_RESULT_CACHED) << std::endl;
 
-			avahiHosts[name] = new Host((char *)name, (char *)host_name, port, (char *)t);
+			avahiHosts[name] = new Host((char *)name, (char *)a, port, (char *)t);
 			avahi_free(t);
 			//todo:create new host here;
 		}
+		break;
 
 
 
