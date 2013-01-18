@@ -65,9 +65,9 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 		return;
 	}
 	if (!(out = SSL_set_fd(secure, sock))) {
-			std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
-			return;
-		}
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
+		return;
+	}
 	if ((out = SSL_connect (secure)) != 1) {
 		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(out, NULL) << std::endl;
 		return;
@@ -122,6 +122,15 @@ SecureConnection::~SecureConnection() {
 void SecureConnection::sendData(void *data, int size) {
 	int total = 0, sent;
 	while (total != size) {
+		if ((sent = SSL_write(secure, size, sizeof(int)-total)) != -1) {
+			total += sent;
+		} else {
+			std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") recv: " << strerror(errno) << std::endl;
+			throw std::exception();
+		}
+	}
+	total = 0;
+	while (total != size) {
 		if ((sent = SSL_write(secure, data, size-total)) != -1) {
 			total += sent;
 		} else {
@@ -132,13 +141,13 @@ void SecureConnection::sendData(void *data, int size) {
 }
 
 void SecureConnection::getData(void *file, int *size) {
-	if (recv((long int)secure, &size, sizeof(int), 0) == -1) {
+	if (SSL_read(secure, &size, sizeof(int)) == -1) {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") recv: " << strerror(errno) << std::endl;
 		throw std::exception();
 		return;
 	}
 	int total = 0, recvd;
-	while (total != *size) {
+	while (total <= *size) {
 		if ((recvd = SSL_read(secure, &file+total, *size-total))== -1) {
 			total += recvd;
 		} else {
