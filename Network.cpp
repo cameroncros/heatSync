@@ -14,20 +14,20 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
 
 
 
 Network::Network() {
-	SSL_load_error_strings();
 	SSL_library_init();
-	OpenSSL_add_all_algorithms();
 	SSL_load_error_strings();
 	sockSetup();
-	//ava = new Avahi();
+	ava = new Avahi();
 	int sk;
 	while (true) {
 		sk = sockListen();
 		connections[sk] = new SecureConnection(sk, sslContext);
+		connections[sk]->sendData((void *)"Test", 5);
 	}
 
 	// TODO Auto-generated constructor stub
@@ -55,12 +55,7 @@ void Network::sockSetup() {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(errno, NULL) << std::endl;
 		return;
 	}
-	/*SSL_CTX_use_certificate_file(sslContext, ".heatSync/cert.pem", SSL_FILETYPE_PEM);
-	SSL_CTX_use_PrivateKey_file(sslContext, ".heatSync/key", SSL_FILETYPE_PEM);
-	if (!SSL_CTX_check_private_key(sslContext)) {
-		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(errno, NULL) << std::endl;
-		return;
-	}*/
+	loadCertificates();
 	if ((out = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") getaddrinfo: " << gai_strerror(out) << std::endl;
 		return;
@@ -94,6 +89,28 @@ void Network::sockSetup() {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") Failed Connection: " << strerror(errno) << std::endl;
 		throw std::exception();
 	}
+
+}
+
+void Network::loadCertificates() {
+	int out;
+	std::cout << "Loading Certificate:";
+	if ((out = SSL_CTX_use_certificate_file(sslContext, ".heatSync/server.crt", SSL_FILETYPE_PEM)) != 1) {
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
+		return;
+	}
+	std::cout << ".";
+	if ((out = SSL_CTX_use_PrivateKey_file(sslContext, ".heatSync/server.key", SSL_FILETYPE_PEM)) != 1) {
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
+		return;
+	}
+	std::cout << ".";
+	if (!(out = SSL_CTX_check_private_key(sslContext))) {
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
+		return;
+	}
+	std::cout << ".";
+	std::cout << "Success" << std::endl;
 
 }
 

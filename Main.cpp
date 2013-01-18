@@ -64,7 +64,6 @@ Main::Main() {
 	Network *net;
 	net = new Network();
 	delete(net);
-	//
 	shares.push_back(Share(*database));
 	pause();
 }
@@ -83,7 +82,7 @@ void Main::readSettings(char *settingsFile) {
 	while (file.is_open() && !file.eof()) {
 		std::getline(file, name, '=');
 		std::getline(file, value, '\n');
-		std::cout << name << "/" << value << std::endl;
+		//std::cout << name << "/" << value << std::endl;
 		settings[name]=value;
 	}
 }

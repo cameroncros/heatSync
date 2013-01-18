@@ -27,6 +27,7 @@ private:
 public:
 	Network();
 	virtual ~Network();
+	void loadCertificates();
 	void sockSetup();
 	int sockListen();
 };
