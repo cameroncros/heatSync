@@ -74,7 +74,7 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 	}
 
 
-	// TODO Auto-generated constructor stub
+	// TODO Auto-gerated constructor stub
 
 }
 
@@ -122,7 +122,7 @@ SecureConnection::~SecureConnection() {
 void SecureConnection::sendData(void *data, int size) {
 	int total = 0, sent;
 	while (total != size) {
-		if ((sent = SSL_write(secure, size, sizeof(int)-total)) != -1) {
+		if ((sent = SSL_write(secure, &size, sizeof(int)-total)) != -1) {
 			total += sent;
 		} else {
 			std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") recv: " << strerror(errno) << std::endl;

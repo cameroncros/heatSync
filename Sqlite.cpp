@@ -36,10 +36,11 @@ File *Sqlite::getFileDetails() {
 	return NULL;
 }
 void Sqlite::insertFileDetails(File &nFile, Share &shr) {
+	int out;
 	char *sqlString = NULL;
 	sqlString = sqlite3_mprintf("INSERT OR ABORT INTO files "
-			"(fname,fhash,fdatemod,fsize,fperm,fowner,fgroup,fdeleted)"
-			" VALUES ('%q','%q','%i','%i','%i','%q','%q','%i');\n",
+			"(fname,fhash,fdatemod,fsize,fperm,fowner,fgroup,fdeleted,fscanned)"
+			" VALUES ('%q','%q','%i','%i','%i','%q','%q','%i','%i');\n",
 			nFile.getName().c_str(),
 			nFile.getHash().c_str(),
 			nFile.getChanged(),
@@ -47,33 +48,42 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 			nFile.getPerm(),
 			nFile.getOwner().c_str(),
 			nFile.getGroup().c_str(),
-			nFile.getDeleted()
+			nFile.getDeleted(),
+			nFile.getScanned()
 	);
-	if (sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL ) == SQLITE_ABORT) {
+	std::cout << "Inserting file:" << nFile.getName() << " - " << sqlString <<std::endl;
+	if ((out = sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL )) != SQLITE_OK) {
 		sqlite3_free(sqlString);
 		sqlString = NULL;
-		std::cout << "File Exists, Updating instead;" << std::endl;
-		sqlString = sqlite3_mprintf("UPDATE files SET"
-				"fhash = '%q',"
-				"fscanned = '%i'"
-				"fdatemod = '%i',"
-				"fsize = '%i',"
-				"fperm = '%i',"
-				"fowner = '%q',"
-				"fgroup = '%q',"
-				"fdeleted = '%i',"
-				"WHERE fname = '%q'",
-				nFile.getHash().c_str(),
-				nFile.getScanned(),
-				nFile.getChanged(),
-				nFile.getSize(),
-				nFile.getPerm(),
-				nFile.getOwner().c_str(),
-				nFile.getGroup().c_str(),
-				nFile.getDeleted(),
-				nFile.getName().c_str()
-		);
-		if (sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL ) != SQLITE_OK) {
+		if (out == SQLITE_ABORT) {
+			std::cout << "File Exists, Updating instead;" << std::endl;
+			sqlString = sqlite3_mprintf("UPDATE files SET"
+					"fhash = '%q',"
+					"fscanned = '%i'"
+					"fdatemod = '%i',"
+					"fsize = '%i',"
+					"fperm = '%i',"
+					"fowner = '%q',"
+					"fgroup = '%q',"
+					"fdeleted = '%i',"
+					"fscanned = '%i'"
+					"WHERE fname = '%q'",
+					nFile.getHash().c_str(),
+					nFile.getScanned(),
+					nFile.getChanged(),
+					nFile.getSize(),
+					nFile.getPerm(),
+					nFile.getOwner().c_str(),
+					nFile.getGroup().c_str(),
+					nFile.getDeleted(),
+					nFile.getScanned(),
+					nFile.getName().c_str()
+			);
+			if (sqlite3_exec(dbHandle,sqlString, NULL, 0, NULL ) != SQLITE_OK) {
+				std::cerr << sqlString << std::endl;
+				std::cerr << sqlite3_errmsg(dbHandle) << std::endl;
+			}
+		}else {
 			std::cerr << sqlString << std::endl;
 			std::cerr << sqlite3_errmsg(dbHandle) << std::endl;
 		}
