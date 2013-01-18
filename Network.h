@@ -22,6 +22,7 @@ class Network {
 private:
 	int listenSock;
 	Avahi *ava;
+	SSL_CTX *sslContext;
 	std::map<int, SecureConnection *> connections;
 public:
 	Network();

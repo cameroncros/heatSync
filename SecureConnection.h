@@ -19,7 +19,7 @@ private:
 	SSL *secure;
 public:
 	SecureConnection(char *, char *);
-	SecureConnection(int);
+	SecureConnection(int, SSL_CTX *);
 	virtual ~SecureConnection();
 	void sendData(void *, int);
 	void getData(void *, int *);

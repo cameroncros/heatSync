@@ -18,14 +18,17 @@
 
 
 Network::Network() {
-	new SecureConnection((char *)"192.168.1.110", (char *)"19669");
-	/*sockSetup();
-	ava = new Avahi();
+	SSL_load_error_strings();
+	SSL_library_init();
+	OpenSSL_add_all_algorithms();
+	SSL_load_error_strings();
+	sockSetup();
+	//ava = new Avahi();
 	int sk;
 	while (true) {
 		sk = sockListen();
-		connections[sk] = new SecureConnection(sk);
-	}*/
+		connections[sk] = new SecureConnection(sk, sslContext);
+	}
 
 	// TODO Auto-generated constructor stub
 
@@ -48,7 +51,16 @@ void Network::sockSetup() {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-
+	if ((sslContext = SSL_CTX_new(SSLv23_server_method ())) == NULL) {
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(errno, NULL) << std::endl;
+		return;
+	}
+	/*SSL_CTX_use_certificate_file(sslContext, ".heatSync/cert.pem", SSL_FILETYPE_PEM);
+	SSL_CTX_use_PrivateKey_file(sslContext, ".heatSync/key", SSL_FILETYPE_PEM);
+	if (!SSL_CTX_check_private_key(sslContext)) {
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(errno, NULL) << std::endl;
+		return;
+	}*/
 	if ((out = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") getaddrinfo: " << gai_strerror(out) << std::endl;
 		return;
@@ -82,6 +94,7 @@ void Network::sockSetup() {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") Failed Connection: " << strerror(errno) << std::endl;
 		throw std::exception();
 	}
+
 }
 
 int Network::sockListen() {
@@ -89,7 +102,7 @@ int Network::sockListen() {
 	while (newSock == -1) {
 		if (listen(listenSock,100) == -1) {
 			std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") Failed Connection: " << strerror(errno) << std::endl;	\
-			break;
+			throw std::exception();
 		}
 		newSock = accept(listenSock, NULL, NULL);
 		if (newSock == -1) {

@@ -56,8 +56,6 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 		return;
 	}
 	//finished creating a socket, now add the ssl part(curtesy of: http://savetheions.com/2010/01/16/quickly-using-openssl-in-c/)
-	SSL_load_error_strings();
-	SSL_library_init();
 	if ((sslContext = SSL_CTX_new(SSLv23_client_method ())) == NULL) {
 		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
 		return;
@@ -66,12 +64,12 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
 		return;
 	}
-	if (!SSL_set_fd(secure, sock)) {
-		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
-		return;
-	}
-	if (SSL_connect (secure) != 1) {
-		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+	if (!(out = SSL_set_fd(secure, sock))) {
+			std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
+			return;
+		}
+	if ((out = SSL_connect (secure)) != 1) {
+		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(out, NULL) << std::endl;
 		return;
 	}
 
@@ -80,29 +78,25 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 
 }
 
-SecureConnection::SecureConnection(int sk) {
+SecureConnection::SecureConnection(int sk, SSL_CTX *ctx) {
 	sock = sk;
 	secure = NULL;
-	sslContext = NULL;
-
+	sslContext = ctx;
+	int out;
 
 	//finished creating a socket, now add the ssl part(curtesy of: http://savetheions.com/2010/01/16/quickly-using-openssl-in-c/)
-	SSL_load_error_strings();
-	SSL_library_init();
-	if ((sslContext = SSL_CTX_new(SSLv23_client_method ())) == NULL) {
-		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
-		return;
-	}
+
+
 	if ((secure = SSL_new(sslContext)) == NULL) {
-		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(errno, NULL) << std::endl;
 		return;
 	}
-	if (!SSL_set_fd(secure, sock)) {
-		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+	if (!(out = SSL_set_fd(secure, sock))) {
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
 		return;
 	}
-	if (SSL_connect (secure) != 1) {
-		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+	if ((out = SSL_accept (secure)) != 1) {
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
 		return;
 	}
 
@@ -128,10 +122,10 @@ SecureConnection::~SecureConnection() {
 void SecureConnection::sendData(void *data, int size) {
 	int total = 0, sent;
 	while (total != size) {
-		if ((sent = send((long int)secure, data, size-total, 0)) != -1) {
+		if ((sent = SSL_write(secure, data, size-total)) != -1) {
 			total += sent;
 		} else {
-			std::cerr << "(Secure Connection) recv: " << strerror(errno) << std::endl;
+			std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") recv: " << strerror(errno) << std::endl;
 			throw std::exception();
 		}
 	}
@@ -139,13 +133,13 @@ void SecureConnection::sendData(void *data, int size) {
 
 void SecureConnection::getData(void *file, int *size) {
 	if (recv((long int)secure, &size, sizeof(int), 0) == -1) {
-		std::cerr << "(Secure Connection) recv: " << strerror(errno) << std::endl;
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") recv: " << strerror(errno) << std::endl;
 		throw std::exception();
 		return;
 	}
 	int total = 0, recvd;
 	while (total != *size) {
-		if ((recvd = recv((long int)secure, &file+total, *size-total, 0))== -1) {
+		if ((recvd = SSL_read(secure, &file+total, *size-total))== -1) {
 			total += recvd;
 		} else {
 			throw std::exception();
