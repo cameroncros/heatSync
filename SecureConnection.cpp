@@ -18,7 +18,7 @@
 
 
 
-SecureConnection::SecureConnection(char *ad) {
+SecureConnection::SecureConnection(char *ad, char *port) {
 	sock = 0;
 	secure = NULL;
 	sslContext = NULL;
@@ -28,7 +28,7 @@ SecureConnection::SecureConnection(char *ad) {
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-	if ((out = getaddrinfo(ad, PORT, &hints, &servinfo)) != 0) {
+	if ((out = getaddrinfo(ad, port, &hints, &servinfo)) != 0) {
 		std::cerr << "(Secure Connection) getaddrinfo: " << gai_strerror(out) << std::endl;
 		return;
 	}

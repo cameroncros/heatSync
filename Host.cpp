@@ -12,7 +12,9 @@ Host::Host(char *nm, char *hostn, int prt, char *vers) {
 	hostname = hostn;
 	port = prt;
 	version = vers;
-	conn= new SecureConnection(hostn);
+	char port[6];
+	sprintf(port, "%i", prt);
+	conn= new SecureConnection(hostn, port);
 	trd = new std::thread(&Host::sync, this);
 	// TODO Auto-generated constructor stub
 

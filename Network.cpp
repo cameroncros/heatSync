@@ -18,13 +18,15 @@
 
 
 Network::Network() {
-	sockSetup();
+	new SecureConnection((char *)"192.168.1.110", (char *)"19669");
+	/*sockSetup();
 	ava = new Avahi();
 	int sk;
 	while (true) {
 		sk = sockListen();
 		connections[sk] = new SecureConnection(sk);
-	}
+	}*/
+
 	// TODO Auto-generated constructor stub
 
 }

@@ -18,7 +18,7 @@ private:
 	SSL_CTX *sslContext;
 	SSL *secure;
 public:
-	SecureConnection(char *);
+	SecureConnection(char *, char *);
 	SecureConnection(int);
 	virtual ~SecureConnection();
 	void sendData(void *, int);

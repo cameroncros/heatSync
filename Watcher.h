@@ -11,6 +11,7 @@
 #define WATCHER_H_
 
 #include <sys/inotify.h>
+#include <linux/limits.h>
 #include <string>
 #include <thread>
 #include <map>
@@ -19,8 +20,6 @@
 #include "Database.h"
 class Database;
 class Share;
-
-#define NAME_MAX 256
 
 class Watcher {
 private:
