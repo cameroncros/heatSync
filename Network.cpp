@@ -21,19 +21,13 @@
 Network::Network() {
 	SSL_library_init();
 	SSL_load_error_strings();
-	char text[100];
-	int *i;
-	SecureConnection *sec = new SecureConnection((char *)"192.168.1.110", (char *)"19669");
 
-	sec->getData(text, i);
-	std::cout << text << std::endl;
 	sockSetup();
 	ava = new Avahi();
 	int sk;
 	while (true) {
 		sk = sockListen();
 		connections[sk] = new SecureConnection(sk, sslContext);
-		connections[sk]->sendData((void *)"Test", 5);
 	}
 
 	// TODO Auto-generated constructor stub
