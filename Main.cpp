@@ -62,9 +62,10 @@ Main::Main() {
 	//TODO: temp shit
 
 	Network *net;
+	shares.push_back(Share(*database));
 	net = new Network();
 	delete(net);
-	shares.push_back(Share(*database));
+
 	pause();
 }
 

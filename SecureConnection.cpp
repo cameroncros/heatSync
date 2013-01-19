@@ -74,7 +74,7 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 	}
 
 
-	// TODO Auto-generated constructor stub
+	// TODO Auto-gerated constructor stub
 
 }
 
