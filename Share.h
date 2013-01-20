@@ -20,6 +20,7 @@ class Watcher;
 class Share {
 private:
 	int shareID;
+	std::string name;
 	std::string path;
 	int depth;
 	bool symlink;
@@ -29,7 +30,7 @@ private:
 	Database *database;
 	Watcher *watch;
 public:
-	Share(Database &);
+	Share(Database *db, const unsigned char *nm, const unsigned char *pth, int dep, int sym, int hid, int id, int last);
 	virtual ~Share();
 
 	int getShareID();

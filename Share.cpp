@@ -15,14 +15,17 @@
 #include <sys/stat.h>
 #include <algorithm>
 
-Share::Share(Database &db) {
-	path = "/home/cameron";
-	lastChanged = 0;
-	shareID = 1;
-	depth = 3;
-	symlink = 0;
-	hidden = 1;
-	database = &db;
+Share::Share(Database *db, const unsigned char *nm, const unsigned char *pth, int dep, int sym, int hid, int id, int last) {
+	std::cout << nm << " - " << pth << std::endl;
+
+	name = (char *)nm;
+	path = (char *)pth;
+	lastChanged = last;
+	shareID = id;
+	depth = dep;
+	symlink = sym;
+	hidden = hid;
+	database = db;
 	watch = new Watcher(*this, *database);
 	int start = time(NULL);
 	readDir(path);
@@ -71,7 +74,7 @@ void Share::readDir(std::string &searchPath) {
 	struct stat fstats;
 	int currentDepth = std::count(searchPath.begin(), searchPath.end(), '/')-std::count(path.begin(), path.end(), '/');
 	watch->addWatch(searchPath);
-	if (depth - currentDepth > 0) {
+	if (depth - currentDepth > 0 || depth == 0) { //warning. depth should not be infinite if symlinks are also followed, otherwise infinite loops will occur.
 
 		dir = opendir(searchPath.c_str());
 		if (dir == NULL) {

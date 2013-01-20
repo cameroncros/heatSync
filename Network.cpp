@@ -95,12 +95,12 @@ void Network::sockSetup() {
 void Network::loadCertificates() {
 	int out;
 	std::cout << "Loading Certificate:";
-	if ((out = SSL_CTX_use_certificate_file(sslContext, ".heatSync/server.crt", SSL_FILETYPE_PEM)) != 1) {
+	if ((out = SSL_CTX_use_certificate_file(sslContext, "/home/cameron/.heatSync/server.crt", SSL_FILETYPE_PEM)) != 1) { //todo: fix directory
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
 		return;
 	}
 	std::cout << ".";
-	if ((out = SSL_CTX_use_PrivateKey_file(sslContext, ".heatSync/server.key", SSL_FILETYPE_PEM)) != 1) {
+	if ((out = SSL_CTX_use_PrivateKey_file(sslContext, "/home/cameron/.heatSync/server.key", SSL_FILETYPE_PEM)) != 1) {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
 		return;
 	}

@@ -19,6 +19,8 @@ class Avahi;
 
 class Main {
 private:
+	std::string settingsDir;
+	std::string settingsFile;
 	std::vector<Share> shares;
 	std::map<std::string, std::string> settings;
 	Database *database;
@@ -29,7 +31,8 @@ public:
 
 	void addShare(Share &);
 	void removeShare(Share &);
-	void readSettings(char *);
+	void createSettingsDir();
+	void readSettings();
 
 	Share *getShareList();
 	//Host *getHostList();

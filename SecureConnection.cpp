@@ -29,19 +29,19 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	if ((out = getaddrinfo(ad, port, &hints, &servinfo)) != 0) {
-		std::cerr << "(Secure Connection) getaddrinfo: " << gai_strerror(out) << std::endl;
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") getaddrinfo: " << gai_strerror(out) << std::endl;
 		return;
 	}
 	for (p = servinfo; p != NULL; p = p->ai_next) {
 		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
 			close(sock);
 			sock = 0;
-			std::cerr << "(Secure Connection) socket: " << strerror(errno) << std::endl;
+			std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") socket: " << strerror(errno) << std::endl;
 		}
 		if (connect(sock, p->ai_addr, p->ai_addrlen) == -1) {
 			close(sock);
 			sock = 0;
-			std::cerr << "(Secure Connection) socket: " << strerror(errno) << std::endl;
+			std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") socket: " << strerror(errno) << std::endl;
 		} else {
 			break;
 		}
@@ -52,16 +52,16 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 			close(sock);
 			sock = 0;
 		}
-		std::cerr << "(Secure Connection) Failed Connection: " << strerror(errno) << std::endl;
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") Failed Connection: " << strerror(errno) << std::endl;
 		return;
 	}
 	//finished creating a socket, now add the ssl part(curtesy of: http://savetheions.com/2010/01/16/quickly-using-openssl-in-c/)
 	if ((sslContext = SSL_CTX_new(SSLv23_client_method ())) == NULL) {
-		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(errno, NULL) << std::endl;
 		return;
 	}
 	if ((secure = SSL_new(sslContext)) == NULL) {
-		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(errno, NULL) << std::endl;
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(errno, NULL) << std::endl;
 		return;
 	}
 	if (!(out = SSL_set_fd(secure, sock))) {
@@ -69,7 +69,7 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 		return;
 	}
 	if ((out = SSL_connect (secure)) != 1) {
-		std::cerr << "(Secure Connection) SSL: " << ERR_error_string(out, NULL) << std::endl;
+		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
 		return;
 	}
 

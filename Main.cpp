@@ -33,38 +33,25 @@
  */
 
 Main::Main() {
-	// TODO Auto-generated constructor stub
-	struct stat tmp;
-	if (stat(".heatSync", &tmp) != 0) {
-		if (mkdir(".heatSync", 0755) != 0) {
-			std::cerr << "Can't make .heatSync directory" << std::endl;
-			exit(1);
-		}
-	}
-	if (S_ISDIR(tmp.st_mode) == 0) {
-		if (remove(".heatSync") != 0) {
-			std::cerr << "Can't delete .heatSync file" << std::endl;
-			exit(1);
-		}
-		if (mkdir(".heatSync", 0755) != 0) {
-			std::cerr << "Can't make .heatSync directory" << std::endl;
-			exit(1);
-		}
-	}
-	if (stat(".heatSync/config", &tmp) == 0 && S_ISREG(tmp.st_mode)) {
-		readSettings((char *)".heatSync/config");
-	}
-
 	database = NULL;
 	std::cout << "Welcome to HeatSync." << std::endl;
-	database = new Sqlite();
+	settingsDir = getenv("HOME");
+	settingsDir.append("/.heatSync/");
+	settingsFile = settingsDir;
+	settingsFile.append("config");
+	createSettingsDir();
 
+	readSettings();
+
+
+
+	database = new Sqlite();
+	database->getShares(shares);
 	//TODO: temp shit
 
-	Network *net;
-	shares.push_back(Share(*database));
+	/*Network *net;
 	net = new Network();
-	delete(net);
+	delete(net);*/
 
 	pause();
 }
@@ -75,16 +62,40 @@ Main::~Main() {
 	// TODO Auto-generated destructor stub
 }
 
-void Main::readSettings(char *settingsFile) {
-	std::cout << "Reading Settings" << std::endl;
-	std::ifstream file;
-	file.open(settingsFile, std::ios::in);
-	std::string name, value;
-	while (file.is_open() && !file.eof()) {
-		std::getline(file, name, '=');
-		std::getline(file, value, '\n');
-		//std::cout << name << "/" << value << std::endl;
-		settings[name]=value;
+void Main::createSettingsDir() {
+	struct stat tmp;
+	if (stat(settingsDir.c_str(), &tmp) != 0) {
+		if (mkdir(settingsDir.c_str(), 0755) != 0) {
+			std::cerr << "Can't make " << settingsDir << " directory" << std::endl;
+			exit(1);
+		}
+	}
+	if (S_ISDIR(tmp.st_mode) == 0) {
+		if (remove(settingsDir.c_str()) != 0) {
+			std::cerr << "Can't delete " << settingsDir << " file" << std::endl;
+			exit(1);
+		}
+		if (mkdir(settingsDir.c_str(), 0755) != 0) {
+			std::cerr << "Can't make " << settingsDir << " directory" << std::endl;
+			exit(1);
+		}
+	}
+}
+
+void Main::readSettings() {
+	struct stat tmp;
+
+	if (stat(settingsFile.c_str(), &tmp) == 0 && S_ISREG(tmp.st_mode)) {
+		std::cout << "Reading Settings" << std::endl;
+		std::ifstream file;
+		file.open(settingsFile, std::ios::in);
+		std::string name, value;
+		while (file.is_open() && !file.eof()) {
+			std::getline(file, name, '=');
+			std::getline(file, value, '\n');
+			//std::cout << name << "/" << value << std::endl;
+			settings[name]=value;
+		}
 	}
 }
 
