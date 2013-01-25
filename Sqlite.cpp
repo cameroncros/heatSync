@@ -115,7 +115,7 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 			}
 		}
 	} else {
-		sqlite3_bind_int (insertShareFile, 1, shr.getShareID());
+		sqlite3_bind_int (insertShareFile, 1, shr.getShareId());
 		sqlite3_bind_text(insertShareFile, 2, nFile.getHash().c_str(), nFile.getHash().length(), 0);
 		sqlite3_bind_text(insertShareFile, 3, nFile.getHash().c_str(), nFile.getHash().length(), 0);
 		sqlite3_bind_int (insertShareFile, 4, nFile.getChanged());
@@ -135,25 +135,30 @@ void Sqlite::insertFileDetails(File &nFile, Share &shr) {
 
 }
 
-void Sqlite::getShares(std::vector<Share> &shares) {
-	sqlite3_stmt *shrsql;
+void Sqlite::getShares(std::map<int, Share *> &shares) {
+	sqlite3_stmt *sqlStmt;
 	int out;
 	std::string sqlString = "SELECT sid, sname, sdir, sdep, ssym, shid, slast FROM shares;";
-	out = sqlite3_prepare_v2(dbHandle, sqlString.c_str(), sqlString.length(), &shrsql, NULL);
+	out = sqlite3_prepare_v2(dbHandle, sqlString.c_str(), sqlString.length(), &sqlStmt, NULL);
 	if (out != SQLITE_OK) {
 		std::cout << "(" << __FILE__ << ":" << __LINE__ << ") " << out << " - " << sqlite3_errmsg(dbHandle) << std::endl;
 	}
-	while ((out = sqlite3_step(shrsql)) != SQLITE_DONE) {
+	while ((out = sqlite3_step(sqlStmt)) != SQLITE_DONE) {
 		if (out == SQLITE_ROW) {
-			shares.push_back(Share((Database *)this,
-					sqlite3_column_text(shrsql, 1), //nm
-					sqlite3_column_text(shrsql, 2), //pth
-					sqlite3_column_int(shrsql, 3),	//dep
-					sqlite3_column_int(shrsql, 4),	//sym
-					sqlite3_column_int(shrsql, 5),	//hid
-					sqlite3_column_int(shrsql, 0),	//id
-					sqlite3_column_int(shrsql, 6)	//last
-					));
+
+			if (shares.find((int)sqlite3_column_int(sqlStmt, 0)) == shares.end()) {
+				delete(shares[sqlite3_column_int(sqlStmt, 0)]);
+				shares[sqlite3_column_int(sqlStmt, 0)] = NULL;
+			}
+			shares[sqlite3_column_int(sqlStmt, 0)] = new Share((Database *)this,
+					sqlite3_column_text(sqlStmt, 1), //nm
+					sqlite3_column_text(sqlStmt, 2), //pth
+					sqlite3_column_int(sqlStmt, 3),	//dep
+					sqlite3_column_int(sqlStmt, 4),	//sym
+					sqlite3_column_int(sqlStmt, 5),	//hid
+					sqlite3_column_int(sqlStmt, 0),	//id
+					sqlite3_column_int(sqlStmt, 6)	//last
+			);
 		} else {
 			std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") " << sqlite3_errmsg(dbHandle) << std::endl;
 		}
@@ -164,8 +169,22 @@ void Sqlite::getShares(std::vector<Share> &shares) {
 
 
 
-void Sqlite::insertShareDetails(Share &) {
-
+void Sqlite::insertShareDetails(Share &shr) {
+	sqlite3_stmt *sqlStmt;
+	int out;
+	std::string sqlString = "INSERT INTO SHARES (sid, sname, sdir, sdep, ssym, shid, slast)"
+			"VALUES(?, ?, ?, ?, ?, ?, ?);";
+	out = sqlite3_prepare_v2(dbHandle, sqlString.c_str(), sqlString.length(), &sqlStmt, NULL);
+	if (out != SQLITE_OK) {
+		std::cout << "(" << __FILE__ << ":" << __LINE__ << ") " << out << " - " << sqlite3_errmsg(dbHandle) << std::endl;
+	}
+	sqlite3_bind_int (sqlStmt, 1, shr.getShareId());
+	sqlite3_bind_text(sqlStmt, 2, shr.getName().c_str(), shr.getName().length(),0);
+	sqlite3_bind_text(sqlStmt, 3, shr.getPath().c_str(), shr.getPath().length(),0);
+	sqlite3_bind_int (sqlStmt, 4, shr.getDepth());
+	sqlite3_bind_int (sqlStmt, 5, shr.isSymlink());
+	sqlite3_bind_int (sqlStmt, 6, shr.isHidden());
+	sqlite3_bind_int (sqlStmt, 7, shr.getLastChanged());
 }
 
 Host *Sqlite::getHostDetails() {

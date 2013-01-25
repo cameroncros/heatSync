@@ -31,7 +31,7 @@ public:
 	File *getFileDetails(); //returns a single file, with all the fields completed;
 	void insertFileDetails(File &, Share &);
 
-	void getShares(std::vector<Share> &); //todo: return array of all shares;
+	void getShares(std::map<int, Share *> &);
 	void insertShareDetails(Share &);
 
 	Host *getHostDetails(); //todo: returns array of hosts;

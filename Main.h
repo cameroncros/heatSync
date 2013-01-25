@@ -21,7 +21,7 @@ class Main {
 private:
 	std::string settingsDir;
 	std::string settingsFile;
-	std::vector<Share> shares;
+	std::map<int, Share *> shares;
 	std::map<std::string, std::string> settings;
 	Database *database;
 	Avahi *avahi;

@@ -85,7 +85,7 @@ void Watcher::parseEvent(inotify_event *event) {
 			fl = new File(fname);
 			db->insertFileDetails(*fl, *shr);
 			free(fl);
-		} else if (S_ISLNK(fstats.st_mode) && shr->getSymlink()) {
+		} else if (S_ISLNK(fstats.st_mode) && shr->isSymlink()) {
 			if (lstat(fname.c_str(), &fstats)) {
 				std::cerr << "Cant stat symlink" << std::endl;
 			}

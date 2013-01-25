@@ -33,7 +33,7 @@ Share::Share(Database *db, const unsigned char *nm, const unsigned char *pth, in
 	if (hidden == 0) {
 		//database->removeHiddenFiles(*this);
 	}
-
+	db->insertShareDetails(*this);
 	// TODO Auto-generated constructor stub
 
 }
@@ -42,28 +42,72 @@ Share::~Share() {
 	// TODO Auto-generated destructor stub
 }
 
-int Share::getShareID() {
-	return shareID;
+bool Share::checkPassword() {
+	return true;
 }
 
-std::string Share::getPath() {
-	return path;
-}
-
-int Share::getDepth() {
+int Share::getDepth() const {
 	return depth;
 }
 
-bool Share::getSymlink() {
-	return symlink;
+void Share::setDepth(int depth) {
+	this->depth = depth;
 }
 
-bool Share::getHidden() {
+bool Share::isHidden() const {
 	return hidden;
 }
 
-bool Share::checkPassword() {
-	return true;
+void Share::setHidden(bool hidden) {
+	this->hidden = hidden;
+}
+
+int Share::getLastChanged() const {
+	return lastChanged;
+}
+
+void Share::setLastChanged(int lastChanged) {
+	this->lastChanged = lastChanged;
+}
+
+const std::string& Share::getName() const {
+	return name;
+}
+
+void Share::setName(const std::string& name) {
+	this->name = name;
+}
+
+const std::string& Share::getPasshash() const {
+	return passhash;
+}
+
+void Share::setPasshash(const std::string& passhash) {
+	this->passhash = passhash;
+}
+
+const std::string& Share::getPath() const {
+	return path;
+}
+
+void Share::setPath(const std::string& path) {
+	this->path = path;
+}
+
+int Share::getShareId() const {
+	return shareID;
+}
+
+void Share::setShareId(int shareId) {
+	shareID = shareId;
+}
+
+bool Share::isSymlink() const {
+	return symlink;
+}
+
+void Share::setSymlink(bool symlink) {
+	this->symlink = symlink;
 }
 
 void Share::readDir(std::string &searchPath) {

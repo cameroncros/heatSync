@@ -10,8 +10,9 @@
 #ifndef DATABASE_H_
 #define DATABASE_H_
 
-#include <vector>
 #include <mutex>
+#include <map>
+
 #include "File.h"
 #include "Host.h"
 #include "Share.h"
@@ -26,7 +27,7 @@ public:
 	virtual File *getFileDetails()=0;
 	virtual void insertFileDetails(File &, Share &)=0;
 
-	virtual void getShares(std::vector<Share> &)=0;
+	virtual void getShares(std::map<int, Share *> &)=0;
 	virtual void insertShareDetails(Share &)=0;
 
 	virtual Host *getHostDetails()=0;
