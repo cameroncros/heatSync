@@ -15,7 +15,7 @@
 
 class Share;
 class Database;
-class Avahi;
+class Network;
 
 class Main {
 private:
@@ -24,7 +24,7 @@ private:
 	std::map<int, Share *> shares;
 	std::map<std::string, std::string> settings;
 	Database *database;
-	Avahi *avahi;
+	Network *network;
 public:
 	Main();
 	virtual ~Main();

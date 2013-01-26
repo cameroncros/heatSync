@@ -29,7 +29,7 @@ AvahiSimplePoll *simple_discovery_poll;
 AvahiEntryGroup *group;
 std::string name;
 
-std::map<std::string, Host *> avahiHosts;
+extern std::map<std::string, Host *> hosts;
 
 Avahi::Avahi() {
 	discoveryClient = NULL;
@@ -271,8 +271,8 @@ void browse_callback(
 		break;
 
 	case AVAHI_BROWSER_REMOVE:
-		delete(avahiHosts[name]);
-		avahiHosts.erase(name);
+		delete(hosts[name]);
+		hosts.erase(name);
 		std::cerr << "(Browser) REMOVE: service '" << name << "' of type '" << type << "' in domain '" << domain << std::endl;
 		break;
 
@@ -324,7 +324,7 @@ void resolve_callback(
 			std::cerr << "multicast: " << !!(flags & AVAHI_LOOKUP_RESULT_MULTICAST) << std::endl;
 			std::cerr << "cached: " << !!(flags & AVAHI_LOOKUP_RESULT_CACHED) << std::endl;
 
-			avahiHosts[name] = new Host((char *)name, (char *)a, port, (char *)t);
+			hosts[name] = new Host((char *)name, (char *)a, (char *)port, (char *)t);
 			avahi_free(t);
 			//todo:create new host here;
 		}

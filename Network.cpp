@@ -7,6 +7,8 @@
 
 #include "Network.h"
 #include "Avahi.h"
+#include "Host.h"
+#include "SyncServer.h"
 #include <iostream>
 #include <cstdlib>
 #include <netdb.h>
@@ -15,8 +17,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <string>
+#include <map>
 
-
+std::map<std::string, Host *> hosts;
 
 Network::Network() {
 	SSL_library_init();
@@ -27,7 +31,7 @@ Network::Network() {
 	int sk;
 	while (true) {
 		sk = sockListen();
-		connections[sk] = new SecureConnection(sk, sslContext);
+		syncServers.push_back(SyncServer(new SecureConnection(sk, sslContext)));
 	}
 
 	// TODO Auto-generated constructor stub

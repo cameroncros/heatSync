@@ -14,18 +14,16 @@
 
 #include "Database.h"
 #include "Sqlite.h"
-
-//TODO: not needed
-#include "File.h"
-#include "Share.h"
-#include "Avahi.h"
+#include "Network.h"
+#include "SyncClient.h"
 #include "SecureConnection.h"
 
+extern std::map<std::string, Host *> hosts;
 
 /*
  * Necessary Threads:
  * 	1 per share for watching filesystem
- * 	1 per share for actual syncing
+ * 	2 per share for actual syncing
  * 	  - must consult each available connection
  * 	  for most up to date changes
  *  1 thread for database
@@ -43,21 +41,33 @@ Main::Main() {
 
 	readSettings();
 
-
+	std::map<Share *, std::map<Host *, SyncClient *>> syncClients;
 
 	database = new Sqlite();
 	database->getShares(shares);
-	//TODO: temp shit
-
-	/*Network *net;
-	net = new Network();
-	delete(net);*/
+	network = new Network();
+	std::map<int, Share *>::iterator i;
+	std::map<std::string, Host *>::iterator j;
+	for (i = shares.begin(); i != shares.end(); i++) {
+		for(j = hosts.begin(); j != hosts.end(); j++) {
+			if (syncClients.find(i->second) != syncClients.end() &&
+					syncClients[i->second].find(j->second) != syncClients[i->second].end()) {
+				if (!syncClients[i->second][j->second]->isConnected()) {
+					delete(syncClients[i->second][j->second]);
+					syncClients[i->second][j->second] = new SyncClient(new SecureConnection((char *)i->second, (char *)j->second));
+				}
+			} else {
+				syncClients[i->second][j->second] = new SyncClient(new SecureConnection((char *)i->second, (char *)j->second));
+			}
+		}
+	}
 
 	pause();
 }
 
 Main::~Main() {
 	delete(database);
+	delete(network);
 	std::cout << "Good Bye" << std::endl;
 	// TODO Auto-generated destructor stub
 }
@@ -88,7 +98,7 @@ void Main::readSettings() {
 	if (stat(settingsFile.c_str(), &tmp) == 0 && S_ISREG(tmp.st_mode)) {
 		std::cout << "Reading Settings" << std::endl;
 		std::ifstream file;
-		file.open(settingsFile, std::ios::in);
+		file.open(settingsFile.c_str(), std::ios::in);
 		std::string name, value;
 		while (file.is_open() && !file.eof()) {
 			std::getline(file, name, '=');
