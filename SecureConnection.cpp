@@ -15,7 +15,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
-
+#include <iostream>
 
 
 SecureConnection::SecureConnection(char *ad, char *port) {
@@ -28,6 +28,9 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
+
+	std::cout << "Connecting to: " << ad << ":" << port << std::endl;
+
 	if ((out = getaddrinfo(ad, port, &hints, &servinfo)) != 0) {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") getaddrinfo: " << gai_strerror(out) << std::endl;
 		return;
@@ -72,7 +75,7 @@ SecureConnection::SecureConnection(char *ad, char *port) {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") SSL: " << ERR_error_string(out, NULL) << std::endl;
 		return;
 	}
-
+	std::cout << "Made a connection" <<std::endl;
 
 	// TODO Auto-gerated constructor stub
 
@@ -121,7 +124,7 @@ SecureConnection::~SecureConnection() {
 
 void SecureConnection::sendData(void *data, int size) {
 	int total = 0, sent;
-	while (total != size) {
+	while (total != sizeof(int)) {
 		if ((sent = SSL_write(secure, &size, sizeof(int)-total)) != -1) {
 			total += sent;
 		} else {
@@ -141,14 +144,14 @@ void SecureConnection::sendData(void *data, int size) {
 }
 
 void SecureConnection::getData(void *file, int *size) {
-	if (SSL_read(secure, &size, sizeof(int)) == -1) {
+	if (SSL_read(secure, size, sizeof(int)) == -1) {
 		std::cerr << "(" << __FILE__ << ":" << __LINE__ << ") recv: " << strerror(errno) << std::endl;
 		throw std::exception();
 		return;
 	}
 	int total = 0, recvd;
-	while (total <= *size) {
-		if ((recvd = SSL_read(secure, &file+total, *size-total))== -1) {
+	while (total < *size) {
+		if ((recvd = SSL_read(secure, *(&file+total), *size-total)) != -1) {
 			total += recvd;
 		} else {
 			throw std::exception();

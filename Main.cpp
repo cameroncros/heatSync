@@ -48,6 +48,7 @@ Main::Main() {
 	network = new Network();
 	std::map<int, Share *>::iterator i;
 	std::map<std::string, Host *>::iterator j;
+	//new SyncClient(new SecureConnection((char *)"192.168.1.110", (char *)"19669"));
 	for (i = shares.begin(); i != shares.end(); i++) {
 		for(j = hosts.begin(); j != hosts.end(); j++) {
 			if (syncClients.find(i->second) != syncClients.end() &&

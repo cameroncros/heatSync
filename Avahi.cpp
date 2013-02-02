@@ -117,12 +117,12 @@ void Avahi::avahiDiscovery() {
 
 	/* Check whether creating the client object succeeded */
 	if (!discoveryClient) {
-		std::cerr << "Failed to create client: %s\n" <<  avahi_strerror(error) << std::endl;
+		std::cerr << "Failed to create client: " <<  avahi_strerror(error) << std::endl;
 	}
 
 	/* Create the service browser */
 	if (!(sb = avahi_service_browser_new(discoveryClient, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, "_heatSync._tcp", NULL, (AvahiLookupFlags)0, browse_callback, discoveryClient))) {
-		std::cerr << "Failed to create service browser: %s\n" << avahi_strerror(avahi_client_errno(discoveryClient)) << std::endl;
+		std::cerr << "Failed to create service browser: " << avahi_strerror(avahi_client_errno(discoveryClient)) << std::endl;
 	}
 	/* Run the main loop */
 	avahi_simple_poll_loop(simple_discovery_poll);
@@ -141,7 +141,7 @@ void Avahi::avahiPublish() {
 
 	/* Check whether creating the client object succeeded */
 	if (!publishClient) {
-		std::cerr << "Failed to create client: %s\n" <<  avahi_strerror(error) << std::endl;
+		std::cerr << "Failed to create client: " <<  avahi_strerror(error) << std::endl;
 	}
 
 	/* Run the main loop */
@@ -311,6 +311,8 @@ void resolve_callback(
 		char a[AVAHI_ADDRESS_STR_MAX], *t;
 
 		if (!(flags & AVAHI_LOOKUP_RESULT_LOCAL)) {
+			char sport[6];
+
 			std::cerr << "Service '" << name << "' of type '" << type << "' in domain '" << domain << "':" << std::endl;
 
 			avahi_address_snprint(a, sizeof(a), address);
@@ -323,8 +325,8 @@ void resolve_callback(
 			std::cerr << "wide_area: " << !!(flags & AVAHI_LOOKUP_RESULT_WIDE_AREA) << std::endl;
 			std::cerr << "multicast: " << !!(flags & AVAHI_LOOKUP_RESULT_MULTICAST) << std::endl;
 			std::cerr << "cached: " << !!(flags & AVAHI_LOOKUP_RESULT_CACHED) << std::endl;
-
-			hosts[name] = new Host((char *)name, (char *)a, (char *)port, (char *)t);
+			sprintf(sport, "%i", port);
+			hosts[name] = new Host((char *)name, (char *)a, (char *)sport, (char *)t);
 			avahi_free(t);
 			//todo:create new host here;
 		}
