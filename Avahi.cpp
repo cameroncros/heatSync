@@ -7,6 +7,7 @@
 
 #include "Avahi.h"
 #include "Host.h"
+#include "Main.h"
 
 #include <avahi-client/client.h>
 #include <avahi-client/lookup.h>
@@ -24,12 +25,12 @@
 #include <map>
 #include <unistd.h>
 
+extern Main *mn;
+
 AvahiSimplePoll *simple_publish_poll;
 AvahiSimplePoll *simple_discovery_poll;
 AvahiEntryGroup *group;
 std::string name;
-
-extern std::map<std::string, Host *> hosts;
 
 Avahi::Avahi() {
 	discoveryClient = NULL;
@@ -271,8 +272,7 @@ void browse_callback(
 		break;
 
 	case AVAHI_BROWSER_REMOVE:
-		delete(hosts[name]);
-		hosts.erase(name);
+		mn->deleteHost((char *)name);
 		std::cerr << "(Browser) REMOVE: service '" << name << "' of type '" << type << "' in domain '" << domain << std::endl;
 		break;
 
@@ -326,7 +326,7 @@ void resolve_callback(
 			std::cerr << "multicast: " << !!(flags & AVAHI_LOOKUP_RESULT_MULTICAST) << std::endl;
 			std::cerr << "cached: " << !!(flags & AVAHI_LOOKUP_RESULT_CACHED) << std::endl;
 			sprintf(sport, "%i", port);
-			hosts[name] = new Host((char *)name, (char *)a, (char *)sport, (char *)t);
+			mn->addHost(new Host((char *)name, (char *)a, (char *)sport, (char *)t));
 			avahi_free(t);
 			//todo:create new host here;
 		}

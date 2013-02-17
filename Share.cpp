@@ -27,9 +27,6 @@ Share::Share(Database *db, const unsigned char *nm, const unsigned char *pth, in
 	hidden = hid;
 	database = db;
 	watch = new Watcher(*this, *database);
-	int start = time(NULL);
-	readDir(path);
-	std::cout << "Initial Scan took " << time(NULL)-start << " Seconds" << std::endl;
 	if (hidden == 0) {
 		//database->removeHiddenFiles(*this);
 	}
@@ -104,6 +101,12 @@ void Share::setShareId(int shareId) {
 
 bool Share::isSymlink() const {
 	return symlink;
+}
+
+void Share::startScan() {
+	int start = time(NULL);
+	readDir(path);
+	std::cout << "Initial Scan took " << time(NULL)-start << " Seconds" << std::endl;
 }
 
 void Share::setSymlink(bool symlink) {

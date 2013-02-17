@@ -18,7 +18,7 @@
 #include <iostream>
 
 
-SecureConnection::SecureConnection(char *ad, char *port) {
+SecureConnection::SecureConnection(const char *ad, const char *port) {
 	sock = 0;
 	secure = NULL;
 	sslContext = NULL;

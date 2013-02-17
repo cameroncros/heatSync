@@ -18,7 +18,7 @@
 #include "SyncClient.h"
 #include "SecureConnection.h"
 
-extern std::map<std::string, Host *> hosts;
+Main *mn;
 
 /*
  * Necessary Threads:
@@ -32,7 +32,22 @@ extern std::map<std::string, Host *> hosts;
 
 Main::Main() {
 	database = NULL;
+	network = NULL;
+
+}
+
+Main::~Main() {
+	delete(database);
+	delete(network);
+	std::cout << "Good Bye" << std::endl;
+	// TODO Auto-generated destructor stub
+}
+
+void Main::mainLoop() {
+	database = new Sqlite();
+	network = new Network();
 	std::cout << "Welcome to HeatSync." << std::endl;
+
 	settingsDir = getenv("HOME");
 	settingsDir.append("/.heatSync/");
 	settingsFile = settingsDir;
@@ -41,36 +56,45 @@ Main::Main() {
 
 	readSettings();
 
-	std::map<Share *, std::map<Host *, SyncClient *>> syncClients;
 
-	database = new Sqlite();
+
+
 	database->getShares(shares);
-	network = new Network();
-	std::map<int, Share *>::iterator i;
-	std::map<std::string, Host *>::iterator j;
+
+
 	//new SyncClient(new SecureConnection((char *)"192.168.1.110", (char *)"19669"));
-	for (i = shares.begin(); i != shares.end(); i++) {
-		for(j = hosts.begin(); j != hosts.end(); j++) {
-			if (syncClients.find(i->second) != syncClients.end() &&
-					syncClients[i->second].find(j->second) != syncClients[i->second].end()) {
-				if (!syncClients[i->second][j->second]->isConnected()) {
-					delete(syncClients[i->second][j->second]);
-					syncClients[i->second][j->second] = new SyncClient(new SecureConnection((char *)i->second, (char *)j->second));
-				}
-			} else {
-				syncClients[i->second][j->second] = new SyncClient(new SecureConnection((char *)i->second, (char *)j->second));
-			}
-		}
-	}
+	setupSyncClients();
 
 	pause();
 }
 
-Main::~Main() {
-	delete(database);
-	delete(network);
-	std::cout << "Good Bye" << std::endl;
-	// TODO Auto-generated destructor stub
+void Main::setupSyncClients() {
+	std::map<int, Share *>::iterator i;
+	std::map<std::string, Host *>::iterator j;
+	if (shares.empty() || hosts.empty()) {
+		return;
+	}
+	for(j = hosts.begin(); j != hosts.end(); j++) {
+		std::cout << j->first << " - " << j->second << std::endl;
+	}
+	for (i = shares.begin(); i != shares.end(); i++) {
+		std::cout << i->first << " - " << i->second << std::endl;
+	}
+	for(j = hosts.begin(); j != hosts.end(); j++) {
+		for (i = shares.begin(); i != shares.end(); i++) {
+
+			if (syncClients.find(i->second) != syncClients.end() &&
+					syncClients[i->second].find(j->second) != syncClients[i->second].end()) {
+				if (!syncClients[i->second][j->second]->isConnected()) {
+					delete(syncClients[i->second][j->second]);
+					syncClients[i->second][j->second] = new SyncClient(new SecureConnection(j->second->getHostname().c_str(), j->second->getPort().c_str()), i->second);
+				}
+			} else {
+				syncClients[i->second][j->second] = new SyncClient(new SecureConnection(j->second->getHostname().c_str(), j->second->getPort().c_str()), i->second);
+			}
+		}
+		//todo: Add solo connection for discovering shared resources, alternatively, publish shares individually with avahi etc.
+	}
 }
 
 void Main::createSettingsDir() {
@@ -110,11 +134,30 @@ void Main::readSettings() {
 	}
 }
 
+void Main::addHost(Host* hst) {//todo: check if host already exists
+	if (hosts.find(hst->getHostname()) == hosts.end()) {
+		hosts[hst->getName()]=hst;
+		setupSyncClients();
+	} else {
+		free(hst);
+	}
+
+}
+
+void Main::deleteHost(char* name) {
+	std::string nm = name;
+	if (hosts.find(nm) == hosts.end()) {
+		delete(hosts[nm]);
+		hosts.erase(nm);
+	}
+}
+
+
 
 
 int main(int argc, char **argv) {
-	Main *mn = new Main();
+	mn = new Main();
+	mn->mainLoop();
 	delete(mn);
 	return 0;
 }
-

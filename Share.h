@@ -34,6 +34,7 @@ public:
 	virtual ~Share();
 
 	bool checkPassword();
+	void startScan();
 	void readDir(std::string &path);
 
 

@@ -20,19 +20,13 @@
 #include <string>
 #include <map>
 
-std::map<std::string, Host *> hosts;
-
 Network::Network() {
 	SSL_library_init();
 	SSL_load_error_strings();
 
 	sockSetup();
 	ava = new Avahi();
-	int sk;
-	while (true) {
-		sk = sockListen();
-		syncServers.push_back(SyncServer(new SecureConnection(sk, sslContext)));
-	}
+	loop = new std::thread(&Network::listenLoop, this);
 
 	// TODO Auto-generated constructor stub
 
@@ -94,6 +88,14 @@ void Network::sockSetup() {
 		throw std::exception();
 	}
 
+}
+
+void Network::listenLoop() {
+	int sk;
+	while (true) { //todo: needs error checking to close the connection afterwards, also should prehaps open connection here
+		sk = sockListen();
+		syncServers.push_back(SyncServer(new SecureConnection(sk, sslContext)));
+	}
 }
 
 void Network::loadCertificates() {

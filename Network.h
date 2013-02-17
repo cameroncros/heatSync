@@ -12,6 +12,7 @@
 #define PORTINT 19669
 
 #include <vector>
+#include <thread>
 
 #include "Avahi.h"
 #include "SecureConnection.h"
@@ -26,12 +27,14 @@ private:
 	Avahi *ava;
 	SSL_CTX *sslContext;
 	std::vector<SyncServer> syncServers;
+	std::thread *loop;
 public:
 	Network();
 	virtual ~Network();
 	void loadCertificates();
 	void sockSetup();
 	int sockListen();
+	void listenLoop();
 };
 
 #endif /* NETWORK_H_ */
