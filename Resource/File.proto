@@ -1,0 +1,12 @@
+message File {
+	optional string hash   =  1;
+	optional string name   =  2;
+	optional int32	size   =  3;
+	optional int32 scanned =  4;
+	optional int32 changed =  5;
+	optional int32 perm    =  6;
+	optional string owner  =  7;
+	optional string group  =  8;
+	optional int32 fileid  =  9;
+	optional int32 deleted = 10;
+}
