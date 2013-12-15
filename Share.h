@@ -23,7 +23,7 @@ private:
 	std::string name;
 	std::string path;
 	int depth;
-	bool symlink;
+	bool symbolic;
 	bool hidden;
 	std::string passhash;
 	int lastChanged;

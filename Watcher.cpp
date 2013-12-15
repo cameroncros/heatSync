@@ -15,6 +15,10 @@
 #include <cstring>
 #include <errno.h>
 #include <sys/stat.h>
+#include <cstdlib>
+#include <dirent.h>
+#include <iostream>
+#include <algorithm>
 
 
 class File;
@@ -22,9 +26,12 @@ class File;
 
 
 
-Watcher::Watcher(Share &share, Database &data) {
-	shr = &share;
-	db = &data;
+Watcher::Watcher(Share &share, Database &data, int depth, int hidden, int symbolic) {
+	this->depth = depth;
+	this->hidden = hidden;
+	this->share = &share;
+	this->db = &data;
+	this->symbolic = symbolic;
 	watchfile = inotify_init();
 	if (watchfile == -1) {
 		std::cerr << "Can't init inotify: " <<strerror(errno) << std::endl;
@@ -79,22 +86,22 @@ void Watcher::parseEvent(inotify_event *event) {
 		struct stat fstats;
 		stat(fname.c_str(), &fstats);
 		if (S_ISDIR(fstats.st_mode)) {
-			shr->readDir(fname);
+			readDir(fname);
 		} else if(S_ISREG(fstats.st_mode)) {
 			File *fl;
 			fl = new File(fname);
-			db->insertFileDetails(*fl, *shr);
+			db->insertFileDetails(*fl, *share);
 			free(fl);
-		} else if (S_ISLNK(fstats.st_mode) && shr->isSymlink()) {
+		} else if (S_ISLNK(fstats.st_mode) && share->isSymlink()) {
 			if (lstat(fname.c_str(), &fstats)) {
 				std::cerr << "Cant stat symlink" << std::endl;
 			}
 			if (S_ISDIR(fstats.st_mode)) {
-				shr->readDir(fname);
+				readDir(fname);
 			} else {
 				File *fl;
 				fl = new File(fname);
-				db->insertFileDetails(*fl, *shr);
+				db->insertFileDetails(*fl, *share);
 				free(fl);
 			}
 
@@ -112,6 +119,77 @@ void Watcher::parseEvent(inotify_event *event) {
 		throw std::exception();
 		break;*/
 
+	}
+
+}
+
+void Watcher::readDir(std::string &searchPath) {
+	DIR *dir = NULL;
+	dirent *tmp = NULL;
+	File *file = NULL;
+	std::string newpath;
+	struct stat fstats;
+	int currentDepth = std::count(searchPath.begin(), searchPath.end(), '/')-std::count(path.begin(), path.end(), '/');
+	addWatch(searchPath);
+	if (depth - currentDepth > 0 || depth == 0) { //warning. depth should not be infinite if symlinks are also followed, otherwise infinite loops will occur.
+
+		dir = opendir(searchPath.c_str());
+		if (dir == NULL) {
+			std::cerr << "Can't open directory: " << searchPath << std::endl;
+			closedir(dir);
+			return;
+		}
+
+		while ((tmp = readdir(dir))) {
+			if (tmp->d_name[0] == '.' && (
+					(tmp->d_name[1] == '.' && tmp->d_name[2] == '\0') ||
+					(tmp->d_name[1] == '\0') ||
+					(hidden == 0))
+			) {
+			} else {
+				switch (tmp->d_type) {
+				case DT_DIR:
+					newpath = searchPath;
+					newpath.append("/").append(tmp->d_name);
+					readDir(newpath);
+
+					break;
+				case DT_LNK:
+					if (symbolic) {
+						newpath = searchPath;
+						newpath.append("/").append(tmp->d_name);
+						if (lstat(newpath.c_str(), &fstats)) {
+							std::cerr << "Cant stat symlink" << std::endl;
+						}
+						if (S_ISDIR(fstats.st_mode)) {
+
+							readDir(newpath);
+						} else {
+							file = new File(newpath);
+							db->insertFileDetails(*file, *share);
+							delete(file);
+							file = NULL;
+						}
+					}
+					break;
+				case DT_REG:
+					newpath = searchPath;
+					file = new File(newpath.append("/").append(tmp->d_name));
+					std::cout << newpath << std::endl;
+					db->insertFileDetails(*file, *share);
+					delete(file);
+					file = NULL;
+					break;
+				default:
+					std::cerr << "Unknown File" << std::endl;
+					break;
+				}
+			}
+
+		}
+
+
+		closedir(dir);
 	}
 
 }
